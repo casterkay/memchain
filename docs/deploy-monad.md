@@ -30,7 +30,11 @@ Use the monskills wallet flow:
 - no plaintext private keys
 - Safe multisig recorded in `~/.monskills/multisig.json`
 - Monad testnet chain id `10143`
+- Monad testnet chain id hex `0x279F`
 - Monad testnet RPC `https://testnet-rpc.monad.xyz`
+- faucet `https://testnet.monad.xyz`
+- explorer `https://testnet.monadexplorer.com/`
+- explorer `https://monad-testnet.socialscan.io/`
 
 All deployment transactions after Safe creation should be proposed through:
 
