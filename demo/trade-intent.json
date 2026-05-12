@@ -1,0 +1,11 @@
+{
+  "schema": "memchain.intent.v1",
+  "agent_id": "openclaw-demo",
+  "decision_id": "eth-long-001",
+  "action": "trade",
+  "summary": "Considering ETH long after breakout confirmation",
+  "symbols": ["ETH"],
+  "mode": "paper",
+  "strategy_version": "dual-momentum-v0",
+  "external_reference": "paper-order-1"
+}
