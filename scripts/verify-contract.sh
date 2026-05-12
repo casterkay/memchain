@@ -8,7 +8,7 @@ if [ $# -ne 3 ]; then
 fi
 
 CHAIN_ID="$1"
-CONTRACT_ADDRESS="$2"
+CONTRACT_ADDRESS="$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')"
 COMPILER_VERSION="$3"
 CONTRACT_NAME="contracts/MemoryAnchorRegistry.sol:MemoryAnchorRegistry"
 STANDARD_INPUT="/tmp/memchain-standard-input.json"
@@ -37,6 +37,6 @@ jq -n \
     foundryMetadata: $foundryMetadata[0]
   }' > "$VERIFY_BODY"
 
-curl -X POST https://agents.devnads.com/v1/verify \
+curl -s -X POST https://agents.devnads.com/v1/verify \
   -H "Content-Type: application/json" \
   -d @"$VERIFY_BODY"
