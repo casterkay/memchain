@@ -8,3 +8,4 @@ cache/
 demo/.work/
 replay/
 broadcast/
+.DS_Store

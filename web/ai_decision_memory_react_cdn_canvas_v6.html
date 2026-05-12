@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Decision Memory · React CDN Canvas V6</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      --bg: #070914;
+      --panel: rgba(16, 20, 35, .82);
+      --panel-2: rgba(20, 25, 45, .72);
+      --panel-3: rgba(255,255,255,.055);
+      --line: rgba(255,255,255,.10);
+      --line-strong: rgba(132, 117, 255, .45);
+      --text: #f8f8ff;
+      --muted: #9ea5bb;
+      --muted-2: #697086;
+      --blue: #66a3ff;
+      --purple: #9175ff;
+      --cyan: #36d6ff;
+      --green: #41e2a0;
+      --orange: #ffb45f;
+      --red: #ff6b8d;
+      --shadow: 0 24px 80px rgba(0,0,0,.32);
+      --radius: 18px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body, #root { width: 100%; height: 100%; margin: 0; }
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 16% 10%, rgba(78, 95, 255, .24), transparent 34%),
+        radial-gradient(circle at 76% 22%, rgba(146, 89, 255, .24), transparent 30%),
+        radial-gradient(circle at 76% 88%, rgba(22, 205, 255, .14), transparent 28%),
+        linear-gradient(135deg, #070914, #060713 54%, #04050c);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 270px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(8, 10, 20, .72);
+      backdrop-filter: blur(22px);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #3b82ff, #7c4dff 62%, #b06cff);
+      box-shadow: 0 0 30px rgba(124, 77, 255, .55);
+    }
+
+    .brand-title { font-weight: 760; letter-spacing: -.03em; }
+    .brand-subtitle { font-size: 12px; color: var(--muted-2); margin-top: 1px; }
+
+    .toolbar-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .search {
+      width: min(460px, 100%);
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      padding: 0 12px;
+      box-shadow: inset 0 0 26px rgba(145,117,255,.04);
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .search input::placeholder { color: #7c8398; }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-btn, .mode-btn, .zoom-pill {
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.09);
+      color: #dfe3f7;
+      background: rgba(255,255,255,.045);
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 12px;
+      font-weight: 650;
+      font-size: 13px;
+    }
+
+    .tool-btn.icon { width: 38px; padding: 0; }
+    .tool-btn.primary {
+      border: 0;
+      color: white;
+      background: linear-gradient(135deg, #6d57ff, #9a75ff);
+      box-shadow: 0 14px 30px rgba(116, 87, 255, .34);
+    }
+    .mode-btn.active {
+      background: rgba(145, 117, 255, .15);
+      border-color: rgba(145,117,255,.45);
+      color: white;
+    }
+    .zoom-pill { min-width: 76px; color: #bfc5dc; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .canvas-shell {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(145,117,255,.14), transparent 42%),
+        linear-gradient(180deg, rgba(255,255,255,.018), transparent);
+    }
+
+    .canvas-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: .54;
+      transform-origin: 0 0;
+      pointer-events: none;
+    }
+
+    .canvas-watermark {
+      position: absolute;
+      left: 24px;
+      top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 5;
+      padding: 8px 12px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(9, 11, 24, .56);
+      backdrop-filter: blur(12px);
+      color: #aeb5cc;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .canvas-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 10400px;
+      height: 1900px;
+      transform-origin: 0 0;
+    }
+
+    .canvas-stage.animating {
+      transition: transform var(--move-duration, .72s) cubic-bezier(.19, 1, .22, 1);
+    }
+
+    .stage-bg-line {
+      position: absolute;
+      left: 120px;
+      top: 800px;
+      width: 9940px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(145,117,255,.28), rgba(85,160,255,.58), rgba(145,117,255,.28), transparent);
+      box-shadow: 0 0 40px rgba(145,117,255,.36);
+    }
+
+    .node {
+      position: absolute;
+      width: 182px;
+      min-height: 117px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.11);
+      background: linear-gradient(180deg, rgba(25, 30, 54, .88), rgba(12, 15, 30, .88));
+      box-shadow: 0 18px 48px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.06);
+      padding: 12px;
+      user-select: none;
+      transition: box-shadow .18s ease, border-color .18s ease;
+      backdrop-filter: blur(18px);
+    }
+
+    .node:hover { box-shadow: 0 24px 76px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.06); }
+    .node.selected {
+      border-color: rgba(145,117,255,.78);
+      box-shadow: 0 24px 80px rgba(0,0,0,.36), 0 0 0 4px rgba(145,117,255,.14), 0 0 40px rgba(145,117,255,.30);
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      width: 2px;
+      background: linear-gradient(var(--branch-dir), var(--accent), transparent);
+      box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 80%, transparent);
+      pointer-events: none;
+    }
+    .node.above::after {
+      top: 100%;
+      height: max(0px, calc(var(--knot-top) - 100%));
+      --branch-dir: to bottom;
+    }
+    .node.below::after {
+      top: var(--knot-top);
+      height: calc(0px - var(--knot-top));
+      --branch-dir: to top;
+    }
+
+    .node-knot {
+      position: absolute;
+      left: 50%;
+      top: var(--knot-top);
+      width: 28px;
+      height: 28px;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: #0a0d1c;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 72%, transparent), inset 0 0 12px color-mix(in srgb, var(--accent) 24%, transparent);
+      pointer-events: none;
+    }
+
+    .node-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .node-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 44%, transparent);
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .node-time {
+      display: inline-flex;
+      align-items: center;
+      font-size: 9px;
+      color: #858da5;
+      margin-bottom: 2px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+    .node-time:hover { color: #d7dcff; text-decoration: underline; text-underline-offset: 3px; }
+    .node-title { font-size: 12px; font-weight: 790; letter-spacing: -.025em; line-height: 1.18; color: white; }
+    .node-hash {
+      margin-top: 7px;
+      height: 22px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.045);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 7px;
+      color: #8f98b1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 8px;
+      width: 100%;
+      cursor: pointer;
+    }
+    .node-hash:hover {
+      color: #eef0ff;
+      border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+      background: color-mix(in srgb, var(--accent) 12%, rgba(255,255,255,.04));
+    }
+    .node-hash-label { color: var(--accent); font-weight: 800; font-family: var(--font); font-size: 8px; text-transform: uppercase; letter-spacing: .06em; }
+    .node-hash-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .best-buy-row {
+      margin-top: 6px;
+      min-height: 37px;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 6px 7px;
+      background: rgba(145, 117, 255, .075);
+      border: 1px solid rgba(145, 117, 255, .14);
+      color: #aeb6ce;
+      font-size: 8px;
+      overflow: hidden;
+    }
+    .best-buy-list {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+    .best-buy-label {
+      color: #cfc7ff;
+      font-weight: 800;
+      font-family: var(--font);
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .055em;
+    }
+    .best-buy-link {
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #eef0ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .best-buy-link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .best-buy-link small { color: #7f87a0; font-family: var(--font); font-size: 7px; margin-left: 4px; }
+    .best-buy-empty { color: #697086; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .node-copy { color: #aeb6ce; font-size: 10px; line-height: 1.5; margin: 0; }
+    .node-meta {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .node-tag {
+      height: 20px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 7px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.07);
+      color: #cbd1e6;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+    .score { color: var(--accent); font-size: 12px; font-weight: 800; }
+
+    .floating-controls {
+      position: absolute;
+      left: 222px;
+      bottom: 22px;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(10, 12, 24, .72);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .mini-map {
+      position: absolute;
+      left: 22px;
+      bottom: 22px;
+      width: 178px;
+      height: 118px;
+      z-index: 8;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(10, 12, 24, .72);
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.24);
+    }
+    .mini-title { padding: 9px 10px 0; color: #8e96af; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .mini-stage { position: relative; height: 88px; margin: 4px 10px 10px; border-radius: 10px; background: rgba(255,255,255,.04); }
+    .mini-dot { position: absolute; width: 9px; height: 7px; border-radius: 3px; background: rgba(145,117,255,.75); }
+    .mini-viewport { position: absolute; left: 52px; top: 22px; width: 58px; height: 38px; border: 1px solid rgba(255,255,255,.48); border-radius: 6px; }
+
+    .inspector {
+      position: relative;
+      border-left: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(13,16,30,.86), rgba(7,9,18,.92));
+      backdrop-filter: blur(24px);
+      min-width: 0;
+      overflow-y: auto;
+      z-index: 15;
+    }
+
+    .inspector-inner { padding: 18px; }
+    .panel {
+      border: 1px solid rgba(255,255,255,.085);
+      border-radius: 20px;
+      background: rgba(255,255,255,.04);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,.075);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .panel-head h2 { margin: 0; font-size: 15px; letter-spacing: -.02em; }
+    .badge {
+      height: 26px;
+      padding: 0 7px;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(145,117,255,.14);
+      color: #cfc5ff;
+      font-weight: 750;
+      font-size: 9px;
+      border: 1px solid rgba(145,117,255,.24);
+      white-space: nowrap;
+    }
+
+    .slice-profile { padding: 16px; }
+    .slice-title-row { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .slice-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+      flex: 0 0 auto;
+    }
+    .slice-title-row strong { display: block; font-size: 17px; letter-spacing: -.03em; }
+    .slice-title-row small { display: block; color: var(--muted-2); margin-top: 3px; }
+    .inspector-best-buy {
+      margin-top: 10px;
+      border: 1px solid rgba(145,117,255,.18);
+      background: rgba(145,117,255,.07);
+      border-radius: 12px;
+      padding: 10px 11px;
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+    .inspector-best-buy label { color: #cfc7ff; font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
+    .inspector-best-buy-list { display: grid; gap: 7px; min-width: 0; }
+    .inspector-best-buy-item { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; }
+    .inspector-best-buy-time { color: #8f98b1; font-size: 10px; white-space: nowrap; }
+    .inspector-best-buy button { border: 0; background: transparent; padding: 0; color: #eef0ff; font-size: 11px; text-align: left; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .inspector-best-buy button:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .inspector-best-buy span { color: #697086; font-size: 11px; }
+
+    .section {
+      padding: 15px 16px;
+      border-top: 1px solid rgba(255,255,255,.075);
+    }
+    .section h3 {
+      margin: 0 0 9px;
+      color: #e8ebfb;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .section p { margin: 0; color: #acb4cb; font-size: 13px; line-height: 1.65; }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px;
+      background: rgba(255,255,255,.035);
+      border-radius: 14px;
+    }
+    .tab {
+      height: 32px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #858ca1;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .tab.active { background: rgba(255,255,255,.08); color: white; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+    .metric {
+      border: 1px solid rgba(255,255,255,.075);
+      background: rgba(255,255,255,.04);
+      border-radius: 15px;
+      padding: 12px;
+    }
+    .metric label { display: block; color: #858ca1; font-size: 11px; margin-bottom: 5px; }
+    .metric strong { display: block; color: white; font-size: 20px; letter-spacing: -.04em; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-chip {
+      height: 29px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(145,117,255,.11);
+      border: 1px solid rgba(145,117,255,.22);
+      color: #cfc7ff;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .replay-btn {
+      width: 100%;
+      height: 46px;
+      border: 0;
+      border-radius: 15px;
+      color: white;
+      font-weight: 830;
+      margin-top: 14px;
+      background: linear-gradient(135deg, #6d57ff, #9a75ff);
+      box-shadow: 0 20px 38px rgba(116,87,255,.30);
+    }
+
+    .empty-state {
+      height: calc(100vh - 110px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 28px;
+    }
+    .empty-state h2 { margin: 12px 0 8px; color: white; font-size: 19px; }
+    .empty-state p { margin: 0; line-height: 1.6; font-size: 13px; }
+
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: 1fr; }
+      .inspector { display: none; }
+      .topbar { grid-template-columns: 220px 1fr auto; }
+      .toolbar-center .mode-btn { display: none; }
+    }
+    @media (max-width: 760px) {
+      .topbar { grid-template-columns: 1fr auto; }
+      .toolbar-center { display: none; }
+      .tool-btn:not(.primary):not(.icon), .zoom-pill { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useMemo, useState, useRef, useEffect } = React;
+
+    const Icon = ({ type = 'spark', size = 20 }) => {
+      const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none' };
+      const stroke = { stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' };
+      const icons = {
+        spark: <svg {...common}><path {...stroke} d="M12 3l1.8 5.7L20 11l-6.2 2.3L12 21l-1.8-7.7L4 11l6.2-2.3L12 3Z"/><path {...stroke} d="M19 3v4M21 5h-4"/></svg>,
+        search: <svg {...common}><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>,
+        cursor: <svg {...common}><path {...stroke} d="M5 4l14 8-6 1.5L10 20 5 4Z"/></svg>,
+        hand: <svg {...common}><path {...stroke} d="M8 12V6a2 2 0 1 1 4 0v5M12 11V5a2 2 0 1 1 4 0v8M16 12V8a2 2 0 1 1 4 0v7c0 4-3 6-7 6h-1c-3 0-5-2-6-5l-1-4a2 2 0 1 1 4-1Z"/></svg>,
+        comment: <svg {...common}><path {...stroke} d="M21 12a8 8 0 0 1-8 8H7l-4 2 1.4-4.2A8 8 0 1 1 21 12Z"/></svg>,
+        plus: <svg {...common}><path {...stroke} d="M12 5v14M5 12h14"/></svg>,
+        share: <svg {...common}><path {...stroke} d="M18 8a3 3 0 1 0-2.8-4H15a3 3 0 0 0 .2 1L8.8 8.2a3 3 0 1 0 0 7.6l6.4 3.2a3 3 0 1 0 .9-1.8l-6.4-3.2a3 3 0 0 0 0-4l6.4-3.2c.5.7 1.2 1.2 2 1.2Z"/></svg>,
+        brain: <svg {...common}><path {...stroke} d="M9 18a4 4 0 0 1-4-4V9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 9v5a4 4 0 0 1-4 4"/><path {...stroke} d="M12 6v13M8 11h8M8 15h8"/></svg>,
+        chart: <svg {...common}><path {...stroke} d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7"/></svg>,
+        shield: <svg {...common}><path {...stroke} d="M12 3 20 7v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"/><path {...stroke} d="m8.5 12 2.2 2.2 4.8-5"/></svg>,
+        link: <svg {...common}><path {...stroke} d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1 1"/><path {...stroke} d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1-1"/></svg>,
+        news: <svg {...common}><path {...stroke} d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z"/><path {...stroke} d="M8 8h7M8 12h8M8 16h5"/></svg>,
+        target: <svg {...common}><circle {...stroke} cx="12" cy="12" r="8"/><circle {...stroke} cx="12" cy="12" r="3"/><path {...stroke} d="M12 2v3M22 12h-3M12 22v-3M2 12h3"/></svg>
+      };
+      return icons[type] || icons.spark;
+    };
+
+    const initialNodes = [
+      {
+            "id": "s01",
+            "title": "MobileNet Inflection",
+            "time": "2017.06.15 · 09:20",
+            "hash": "0x904cdf1347bf10310a84aa42a1c4b7e7",
+            "type": "research",
+            "icon": "brain",
+            "accent": "#36d6ff",
+            "side": "above",
+            "x": 160,
+            "y": 566,
+            "summary": "Efficient model architecture made edge AI feel commercially plausible.",
+            "question": "Can smaller models unlock new deployment surfaces?",
+            "reasoning": "Architectural efficiency signaled that AI adoption would not be limited to centralized cloud workloads forever.",
+            "action": "Start tracking edge inference, mobile AI, and low-cost deployment opportunities.",
+            "confidence": 62,
+            "outcome": "+5.8%",
+            "tags": [
+                  "Model Efficiency",
+                  "Edge AI",
+                  "Deployment"
+            ]
+      },
+      {
+            "id": "s02",
+            "title": "Transformer Breakthrough",
+            "time": "2017.12.06 · 13:40",
+            "hash": "0x10fad58e8804623100d90b8718a623c4",
+            "type": "research",
+            "icon": "spark",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 410,
+            "y": 874,
+            "summary": "Attention architecture hinted at a new scaling path for language intelligence.",
+            "question": "Will attention-based models become the dominant AI substrate?",
+            "reasoning": "The architecture reduced sequence modeling constraints and created a cleaner path toward larger general models.",
+            "action": "Track NLP scaling signals and teams with large-data training capabilities.",
+            "confidence": 68,
+            "outcome": "+7.1%",
+            "tags": [
+                  "Attention",
+                  "Language Models",
+                  "Scaling"
+            ]
+      },
+      {
+            "id": "s03",
+            "title": "BERT Adoption Wave",
+            "time": "2018.10.11 · 10:15",
+            "hash": "0xd1cf5fe1c31451ef19a4f80012ca18a7",
+            "type": "news",
+            "icon": "news",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 660,
+            "y": 566,
+            "summary": "Pretraining became a repeatable commercial pattern for language tasks.",
+            "question": "Does pretraining convert research progress into enterprise utility?",
+            "reasoning": "Transfer learning reduced task-specific data needs and made enterprise NLP roadmaps more credible.",
+            "action": "Increase monitoring of language AI tooling, search, support, and document workflows.",
+            "confidence": 70,
+            "outcome": "+9.4%",
+            "tags": [
+                  "Pretraining",
+                  "NLP",
+                  "Enterprise AI"
+            ]
+      },
+      {
+            "id": "s04",
+            "title": "GPT-3 API Signal",
+            "time": "2020.06.11 · 14:05",
+            "hash": "0x9f97cde2fc5ce9c5a4cd2821fb1671df",
+            "type": "product",
+            "icon": "link",
+            "accent": "#66a3ff",
+            "side": "below",
+            "x": 910,
+            "y": 874,
+            "summary": "General language capability started shifting from lab result to product primitive.",
+            "question": "Can a model API become an application platform?",
+            "reasoning": "The API form factor compressed the path from model capability to product experimentation.",
+            "action": "Map AI-native product surfaces and developer adoption indicators.",
+            "confidence": 73,
+            "outcome": "+13.6%",
+            "tags": [
+                  "API Platform",
+                  "Developers",
+                  "LLM Apps"
+            ]
+      },
+      {
+            "id": "s05",
+            "title": "Copilot Developer Proof",
+            "time": "2021.06.29 · 09:50",
+            "hash": "0x4c4d11ba7674a4d3ac19b33d8259101d",
+            "type": "product",
+            "icon": "cursor",
+            "accent": "#ffb45f",
+            "side": "above",
+            "x": 1160,
+            "y": 566,
+            "summary": "Code generation proved that AI could sit directly inside professional workflows.",
+            "question": "Which knowledge-work categories will AI augment first?",
+            "reasoning": "Developers offered measurable productivity loops, frequent usage, and clear willingness to adopt assistants.",
+            "action": "Track workflow-native AI products rather than standalone chatbot demos only.",
+            "confidence": 76,
+            "outcome": "+14.2%",
+            "tags": [
+                  "Developer Tools",
+                  "Productivity",
+                  "Workflow AI"
+            ]
+      },
+      {
+            "id": "s06",
+            "title": "Diffusion Creativity Shock",
+            "time": "2022.08.22 · 16:30",
+            "hash": "0x35cd46fff65b1e35bc9fd94b411588ee",
+            "type": "news",
+            "icon": "spark",
+            "accent": "#ff6b8d",
+            "side": "below",
+            "x": 1410,
+            "y": 874,
+            "summary": "Generative AI became visually legible to a mainstream audience.",
+            "question": "Will creative tooling become the first mass AI adoption wedge?",
+            "reasoning": "Image generation created immediate emotional proof, viral distribution, and a new content-production interface.",
+            "action": "Watch design, marketing, and creator tools for rapid AI-native workflow adoption.",
+            "confidence": 78,
+            "outcome": "+16.8%",
+            "tags": [
+                  "Generative AI",
+                  "Creative Tools",
+                  "Viral Adoption"
+            ]
+      },
+      {
+            "id": "s07",
+            "title": "ChatGPT Product Breakout",
+            "time": "2022.11.30 · 12:00",
+            "hash": "0x12b1a36bccdcee5a93da53eff062e74b",
+            "type": "news",
+            "icon": "brain",
+            "accent": "#9175ff",
+            "side": "above",
+            "x": 1660,
+            "y": 566,
+            "summary": "The chat interface converted model capability into obvious consumer utility.",
+            "question": "Did AI cross from infrastructure story into daily-use product behavior?",
+            "reasoning": "Rapid adoption showed that conversational UX could package broad model capability for non-technical users.",
+            "action": "Reprice AI as a consumer and enterprise product cycle, not just a research cycle.",
+            "confidence": 84,
+            "outcome": "+21.9%",
+            "tags": [
+                  "Chat UX",
+                  "Consumer AI",
+                  "Product Market Pull"
+            ]
+      },
+      {
+            "id": "s08",
+            "title": "Microsoft AI Stack Move",
+            "time": "2023.01.23 · 08:40",
+            "hash": "0x9deabf619fadaebde446b1283e7624aa",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#66a3ff",
+            "side": "below",
+            "x": 1910,
+            "y": 874,
+            "summary": "Distribution became a decisive advantage in the AI platform race.",
+            "question": "Will incumbents capture more AI value than startups?",
+            "reasoning": "Cloud, productivity suite distribution, and enterprise trust suggested incumbents could commercialize models quickly.",
+            "action": "Evaluate distribution strength as a core AI valuation variable.",
+            "confidence": 79,
+            "outcome": "+17.7%",
+            "tags": [
+                  "Distribution",
+                  "Cloud",
+                  "Enterprise AI"
+            ]
+      },
+      {
+            "id": "s09",
+            "title": "Plugin Ecosystem Test",
+            "time": "2023.03.23 · 15:10",
+            "hash": "0xe5ab8bd6f9f846c6e42eb7735af5de8d",
+            "type": "product",
+            "icon": "link",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 2160,
+            "y": 566,
+            "summary": "Agents began looking like a possible interface between models and software actions.",
+            "question": "Can LLMs become action layers rather than answer layers?",
+            "reasoning": "Tool use suggested an eventual shift from chat responses to delegated software workflows.",
+            "action": "Track agent frameworks, tool calling, and workflow automation primitives.",
+            "confidence": 72,
+            "outcome": "+8.9%",
+            "tags": [
+                  "Agents",
+                  "Tool Use",
+                  "Workflow Automation"
+            ]
+      },
+      {
+            "id": "s10",
+            "title": "GPT-4 Capability Leap",
+            "time": "2023.03.14 · 10:00",
+            "hash": "0x731fe48ab9032b35fe906ed8cdad2f48",
+            "type": "news",
+            "icon": "spark",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 2410,
+            "y": 874,
+            "summary": "General reasoning quality improved enough to change enterprise adoption expectations.",
+            "question": "Does model quality now support serious enterprise copilots?",
+            "reasoning": "The jump in reliability made AI assistance credible for higher-value professional tasks.",
+            "action": "Increase conviction in vertical AI, copilots, and enterprise AI enablement.",
+            "confidence": 82,
+            "outcome": "+19.5%",
+            "tags": [
+                  "GPT-4",
+                  "Reasoning",
+                  "Enterprise Copilots"
+            ]
+      },
+      {
+            "id": "s11",
+            "title": "OpenAI Ecosystem Shift",
+            "time": "2023.04.19 · 11:15",
+            "hash": "0x367b1045217d1f210aeebe61d76a4199",
+            "type": "news",
+            "icon": "news",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 2660,
+            "y": 566,
+            "summary": "The model capability leap changed the expected speed of AI product adoption.",
+            "question": "Will foundation-model capability growth accelerate software value creation?",
+            "reasoning": "The release accelerated developer attention, improved API availability, and made AI-native workflows credible for production use.",
+            "action": "Start tracking AI application companies and infrastructure demand signals.",
+            "confidence": 74,
+            "outcome": "+12.8%",
+            "tags": [
+                  "Frontier Models",
+                  "Developer Ecosystem",
+                  "API Adoption"
+            ]
+      },
+      {
+            "id": "s12",
+            "title": "Nvidia Earnings Beat",
+            "time": "2024.02.06 · 08:35",
+            "hash": "0x75e2d3ee199b24067a8a5ed23fb205af",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#66a3ff",
+            "side": "below",
+            "x": 2910,
+            "y": 874,
+            "summary": "Compute demand became the clearest monetization signal of the AI cycle.",
+            "question": "Is AI capex translating into real revenue concentration?",
+            "reasoning": "Data center revenue growth confirmed that model scaling and AI deployment were driving urgent hardware demand.",
+            "action": "Keep core exposure to compute leaders while monitoring valuation stretch.",
+            "confidence": 86,
+            "outcome": "+22.4%",
+            "tags": [
+                  "Compute",
+                  "Data Center",
+                  "GPU Cycle"
+            ]
+      },
+      {
+            "id": "s13",
+            "title": "Claude Enterprise Pull",
+            "time": "2024.03.12 · 10:25",
+            "hash": "0x38ca8fd8ff8fe81a9f10f79fddb0d94a",
+            "type": "product",
+            "icon": "shield",
+            "accent": "#36d6ff",
+            "side": "above",
+            "x": 3160,
+            "y": 566,
+            "summary": "Enterprise buyers began separating safe workflow AI from consumer chatbot hype.",
+            "question": "Will governance and reliability determine enterprise adoption?",
+            "reasoning": "Compliance, context windows, and safer assistant positioning increased enterprise pilot quality.",
+            "action": "Track enterprise AI adoption beyond consumer traffic metrics.",
+            "confidence": 77,
+            "outcome": "+11.3%",
+            "tags": [
+                  "Enterprise",
+                  "Safety",
+                  "Workflow"
+            ]
+      },
+      {
+            "id": "s14",
+            "title": "AI Search Repricing",
+            "time": "2024.05.15 · 14:15",
+            "hash": "0xc4700f0d10366ff630722a02fc56ea9f",
+            "type": "trade",
+            "icon": "target",
+            "accent": "#ffb45f",
+            "side": "below",
+            "x": 3410,
+            "y": 874,
+            "summary": "Search and answer engines began converging into a new discovery interface.",
+            "question": "Can AI-native search pressure legacy distribution moats?",
+            "reasoning": "Answer-first search changed user expectations and created risk for ad-supported discovery funnels.",
+            "action": "Monitor AI search usage, referral compression, and monetization changes.",
+            "confidence": 75,
+            "outcome": "+10.7%",
+            "tags": [
+                  "AI Search",
+                  "Discovery",
+                  "Ads"
+            ]
+      },
+      {
+            "id": "s15",
+            "title": "Open-Source Model Rally",
+            "time": "2024.07.23 · 11:05",
+            "hash": "0xa35d72dc32de79a4adb0187d59660004",
+            "type": "research",
+            "icon": "link",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 3660,
+            "y": 566,
+            "summary": "Open-source releases improved the credibility of local and private deployment.",
+            "question": "Will open models commoditize portions of the stack?",
+            "reasoning": "The quality gap narrowed enough to make custom, private, and lower-cost deployment more viable.",
+            "action": "Reduce overreliance on closed-model margin assumptions.",
+            "confidence": 80,
+            "outcome": "+15.2%",
+            "tags": [
+                  "Open Source",
+                  "Local AI",
+                  "Commoditization"
+            ]
+      },
+      {
+            "id": "s16",
+            "title": "Agent Workflow Prototype",
+            "time": "2024.09.09 · 16:20",
+            "hash": "0xa702e56e43d238695d03d3290036f962",
+            "type": "product",
+            "icon": "cursor",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 3910,
+            "y": 874,
+            "summary": "Multi-step workflow demos showed the next product interface beyond chat.",
+            "question": "Can agents become the operating layer for knowledge work?",
+            "reasoning": "Tool execution, memory, and planning loops suggested a new category of AI workflow products.",
+            "action": "Identify agentic software with clear task boundaries and audit trails.",
+            "confidence": 81,
+            "outcome": "+18.1%",
+            "tags": [
+                  "Agents",
+                  "Planning",
+                  "Execution"
+            ]
+      },
+      {
+            "id": "s17",
+            "title": "Reasoning Model Signal",
+            "time": "2024.09.12 · 09:45",
+            "hash": "0x36a0f3c809df230082c278806f84d584",
+            "type": "research",
+            "icon": "brain",
+            "accent": "#36d6ff",
+            "side": "above",
+            "x": 4160,
+            "y": 566,
+            "summary": "Longer deliberation models changed expectations for complex task performance.",
+            "question": "Will inference-time compute become a new scaling axis?",
+            "reasoning": "Reasoning traces and stepwise solving made quality less dependent on a single fast response.",
+            "action": "Track inference cost, latency, and high-value reasoning use cases.",
+            "confidence": 83,
+            "outcome": "+20.6%",
+            "tags": [
+                  "Reasoning",
+                  "Inference",
+                  "Complex Tasks"
+            ]
+      },
+      {
+            "id": "s18",
+            "title": "AI App Revenue Proof",
+            "time": "2024.10.28 · 13:35",
+            "hash": "0xcc1466de6451716b315494c988c6c2ff",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#ff6b8d",
+            "side": "below",
+            "x": 4410,
+            "y": 874,
+            "summary": "Revenue reports started validating application-layer willingness to pay.",
+            "question": "Are AI apps moving from hype to durable monetization?",
+            "reasoning": "Subscription conversion and enterprise contracts showed that workflow value could be captured directly.",
+            "action": "Increase exposure to app-layer names with retention and workflow lock-in.",
+            "confidence": 79,
+            "outcome": "+16.4%",
+            "tags": [
+                  "SaaS",
+                  "Revenue",
+                  "Retention"
+            ]
+      },
+      {
+            "id": "s19",
+            "title": "Memory Layer Thesis",
+            "time": "2024.11.18 · 15:50",
+            "hash": "0x410c3670ac5954d6e5678c261c3c48b7",
+            "type": "product",
+            "icon": "link",
+            "accent": "#66a3ff",
+            "side": "above",
+            "x": 4660,
+            "y": 566,
+            "summary": "Persistent memory became a core differentiator for agents and copilots.",
+            "question": "Does memory turn AI from tool into operating partner?",
+            "reasoning": "User-specific context and decision history suggested a deeper moat than generic model access.",
+            "action": "Prioritize products that own workflow history and institutional memory.",
+            "confidence": 84,
+            "outcome": "+23.2%",
+            "tags": [
+                  "Memory",
+                  "Moat",
+                  "Personalization"
+            ]
+      },
+      {
+            "id": "s20",
+            "title": "DeepSeek Moment",
+            "time": "2025.01.15 · 15:32",
+            "hash": "0xe76610513105a965c8b088a28c5080a7",
+            "type": "news",
+            "icon": "spark",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 4910,
+            "y": 874,
+            "summary": "Lower-cost frontier-quality reasoning challenged assumptions about the AI cost curve.",
+            "question": "How will a cost shock affect the AI industry value chain?",
+            "reasoning": "DeepSeek R1 indicated that high-quality reasoning could be produced with far lower cost, shifting value toward adoption and applications.",
+            "action": "Increase exposure to AI applications, reduce pure compute concentration, and monitor open-source adoption.",
+            "confidence": 82,
+            "outcome": "+24.6%",
+            "tags": [
+                  "Cost Regime Shift",
+                  "Open Source",
+                  "Application Repricing"
+            ]
+      },
+      {
+            "id": "s21",
+            "title": "Inference Cost Reset",
+            "time": "2025.01.17 · 12:30",
+            "hash": "0xe695d7682b34ddcd57d9d3b009214fe5",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#66a3ff",
+            "side": "above",
+            "x": 5160,
+            "y": 566,
+            "summary": "Markets started repricing the relationship between capability and compute spend.",
+            "question": "Does cheaper inference expand demand or compress infrastructure margins?",
+            "reasoning": "Lower cost can broaden usage while pressuring scarce-compute narratives. The key variable becomes elasticity of AI demand.",
+            "action": "Balance compute risk with application upside and watch usage expansion.",
+            "confidence": 78,
+            "outcome": "+12.6%",
+            "tags": [
+                  "Inference Cost",
+                  "Elasticity",
+                  "Repricing"
+            ]
+      },
+      {
+            "id": "s22",
+            "title": "Open Model Adoption Spike",
+            "time": "2025.02.03 · 10:10",
+            "hash": "0xd509b9821c0c53525953a7589f9c759f",
+            "type": "product",
+            "icon": "link",
+            "accent": "#41e2a0",
+            "side": "below",
+            "x": 5410,
+            "y": 874,
+            "summary": "Developers accelerated experiments around open models and private deployment.",
+            "question": "Will open ecosystems create a parallel AI stack?",
+            "reasoning": "Forks, fine-tunes, and local deployment tools suggested a broader developer surface than closed APIs alone.",
+            "action": "Track tooling that abstracts model choice and supports hybrid deployment.",
+            "confidence": 80,
+            "outcome": "+13.9%",
+            "tags": [
+                  "Open Models",
+                  "Developer Tools",
+                  "Hybrid AI"
+            ]
+      },
+      {
+            "id": "s23",
+            "title": "Enterprise Agent Budget",
+            "time": "2025.02.24 · 09:15",
+            "hash": "0xe20ded3b528bd5c8bcd57787dbfe5d99",
+            "type": "trade",
+            "icon": "shield",
+            "accent": "#36d6ff",
+            "side": "above",
+            "x": 5660,
+            "y": 566,
+            "summary": "Budget moved from experimentation toward operational automation.",
+            "question": "Are enterprises ready to fund AI labor replacement workflows?",
+            "reasoning": "Pilots focused on support, finance ops, sales ops, and research workflows created clearer ROI cases.",
+            "action": "Favor products tied to measurable operational outcomes.",
+            "confidence": 82,
+            "outcome": "+18.8%",
+            "tags": [
+                  "Enterprise Agents",
+                  "ROI",
+                  "Automation"
+            ]
+      },
+      {
+            "id": "s24",
+            "title": "AI Browser Thesis",
+            "time": "2025.03.18 · 14:45",
+            "hash": "0x3952abf324060bfe75f15c7ece583816",
+            "type": "product",
+            "icon": "cursor",
+            "accent": "#ffb45f",
+            "side": "below",
+            "x": 5910,
+            "y": 874,
+            "summary": "The browser emerged as a plausible command surface for AI agents.",
+            "question": "Could the browser become the agent runtime?",
+            "reasoning": "A browser agent can observe web state, act across SaaS tools, and compress user tasks into supervised automation.",
+            "action": "Monitor AI browser assistants and security constraints.",
+            "confidence": 76,
+            "outcome": "+9.7%",
+            "tags": [
+                  "Browser Agents",
+                  "SaaS Actions",
+                  "Runtime"
+            ]
+      },
+      {
+            "id": "s25",
+            "title": "Synthetic Data Loop",
+            "time": "2025.04.07 · 11:30",
+            "hash": "0x3030e784e842779e0da86c862b4b101d",
+            "type": "research",
+            "icon": "brain",
+            "accent": "#9175ff",
+            "side": "above",
+            "x": 6160,
+            "y": 566,
+            "summary": "Synthetic data pipelines improved model specialization and evaluation speed.",
+            "question": "Will synthetic data reduce bottlenecks in vertical AI?",
+            "reasoning": "Task-specific data generation can improve long-tail performance when paired with rigorous evaluation.",
+            "action": "Track vertical AI teams with strong eval and data flywheel loops.",
+            "confidence": 77,
+            "outcome": "+11.5%",
+            "tags": [
+                  "Synthetic Data",
+                  "Evals",
+                  "Vertical AI"
+            ]
+      },
+      {
+            "id": "s26",
+            "title": "Robotics Foundation Signal",
+            "time": "2025.05.20 · 10:05",
+            "hash": "0x906af9373337f17806d2d352066eeac5",
+            "type": "research",
+            "icon": "spark",
+            "accent": "#36d6ff",
+            "side": "below",
+            "x": 6410,
+            "y": 874,
+            "summary": "Embodied AI narratives gained credibility through multimodal model progress.",
+            "question": "Will robotics become the next compute-intensive AI frontier?",
+            "reasoning": "Vision-language-action models suggested a path from digital intelligence to physical execution.",
+            "action": "Track robotics datasets, simulation, and hardware deployment bottlenecks.",
+            "confidence": 74,
+            "outcome": "+8.2%",
+            "tags": [
+                  "Robotics",
+                  "Embodied AI",
+                  "VLA"
+            ]
+      },
+      {
+            "id": "s27",
+            "title": "AI Security Incident",
+            "time": "2025.06.09 · 16:00",
+            "hash": "0x8b7f3a24618d64b1ced8d5b09ad99968",
+            "type": "news",
+            "icon": "shield",
+            "accent": "#ff6b8d",
+            "side": "above",
+            "x": 6660,
+            "y": 566,
+            "summary": "Security concerns started becoming a buying criterion rather than a technical footnote.",
+            "question": "Will AI governance slow adoption or create security winners?",
+            "reasoning": "Prompt injection, data leakage, and agent permissions increased demand for control layers.",
+            "action": "Track AI security, policy enforcement, and audit infrastructure.",
+            "confidence": 81,
+            "outcome": "+14.4%",
+            "tags": [
+                  "Security",
+                  "Governance",
+                  "Audit"
+            ]
+      },
+      {
+            "id": "s28",
+            "title": "Vertical Copilot Retention",
+            "time": "2025.07.21 · 13:25",
+            "hash": "0x38e34b2bf0b0b40fce84b608e56edb02",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#41e2a0",
+            "side": "below",
+            "x": 6910,
+            "y": 874,
+            "summary": "Retention data showed vertical copilots could become workflow systems.",
+            "question": "Which AI apps become daily-use systems of record?",
+            "reasoning": "Narrow workflow ownership, proprietary context, and measurable output quality created durable usage.",
+            "action": "Favor vertical copilots with strong retention and data gravity.",
+            "confidence": 85,
+            "outcome": "+27.3%",
+            "tags": [
+                  "Vertical AI",
+                  "Retention",
+                  "Workflow"
+            ]
+      },
+      {
+            "id": "s29",
+            "title": "Model Router Layer",
+            "time": "2025.08.14 · 09:55",
+            "hash": "0xcc4172ca0c108aed14c7c02c35eddfaa",
+            "type": "product",
+            "icon": "link",
+            "accent": "#66a3ff",
+            "side": "above",
+            "x": 7160,
+            "y": 566,
+            "summary": "Model routing became a way to balance cost, quality, and latency.",
+            "question": "Will model choice become invisible infrastructure?",
+            "reasoning": "Routing allows products to use the cheapest adequate model for each task while preserving user experience.",
+            "action": "Track observability, routing, and evaluation platforms.",
+            "confidence": 80,
+            "outcome": "+17.8%",
+            "tags": [
+                  "Model Routing",
+                  "Evals",
+                  "Cost Control"
+            ]
+      },
+      {
+            "id": "s30",
+            "title": "AI Hardware Diversification",
+            "time": "2025.09.03 · 12:20",
+            "hash": "0x4ea4776b465ea6ed051fda226b54b716",
+            "type": "trade",
+            "icon": "chart",
+            "accent": "#ffb45f",
+            "side": "below",
+            "x": 7410,
+            "y": 874,
+            "summary": "Demand for alternatives to dominant accelerators became strategically important.",
+            "question": "Will specialized chips capture new AI workloads?",
+            "reasoning": "Cost pressure and inference diversity increased interest in ASICs and optimized deployment stacks.",
+            "action": "Monitor inference hardware, memory bandwidth, and software compatibility.",
+            "confidence": 73,
+            "outcome": "+10.1%",
+            "tags": [
+                  "AI Chips",
+                  "Inference",
+                  "Hardware"
+            ]
+      },
+      {
+            "id": "s31",
+            "title": "Autonomous Research Agent",
+            "time": "2025.10.16 · 15:00",
+            "hash": "0x81ff20b507e26141816d55f6cf33845e",
+            "type": "product",
+            "icon": "brain",
+            "accent": "#9175ff",
+            "side": "above",
+            "x": 7660,
+            "y": 566,
+            "summary": "Research agents began compressing analyst workflows into repeatable pipelines.",
+            "question": "Can agents preserve reasoning context better than chat logs?",
+            "reasoning": "Research quality improved when agents saved assumptions, evidence, alternatives, and decision traces.",
+            "action": "Build toward decision memory rather than simple conversation history.",
+            "confidence": 86,
+            "outcome": "+29.4%",
+            "tags": [
+                  "Research Agents",
+                  "Decision Memory",
+                  "Auditability"
+            ]
+      },
+      {
+            "id": "s32",
+            "title": "Decision Replay Prototype",
+            "time": "2025.11.05 · 11:40",
+            "hash": "0x25ea445ca65a232ee2495125a93a3f10",
+            "type": "product",
+            "icon": "target",
+            "accent": "#36d6ff",
+            "side": "below",
+            "x": 7910,
+            "y": 874,
+            "summary": "Replayable decision slices became the clearest product narrative.",
+            "question": "Is the core value saving why a decision was made?",
+            "reasoning": "Users cared less about chat history and more about reconstructing the information state at decision time.",
+            "action": "Package memory as a decision-scene replay canvas.",
+            "confidence": 88,
+            "outcome": "+31.2%",
+            "tags": [
+                  "Replay",
+                  "Decision Trace",
+                  "Memory UX"
+            ]
+      },
+      {
+            "id": "s33",
+            "title": "Institutional Audit Demand",
+            "time": "2025.11.26 · 10:35",
+            "hash": "0xf7a304b4b1965c5f2bb03b37a9aa8d90",
+            "type": "trade",
+            "icon": "shield",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 8160,
+            "y": 566,
+            "summary": "Auditability became a core requirement for regulated AI workflows.",
+            "question": "Will AI decisions require proof of context and reasoning?",
+            "reasoning": "Enterprises need records of inputs, assumptions, model state, and approvals to trust autonomous systems.",
+            "action": "Position proof and replay as enterprise-grade trust infrastructure.",
+            "confidence": 84,
+            "outcome": "+22.5%",
+            "tags": [
+                  "Audit",
+                  "Compliance",
+                  "Trust"
+            ]
+      },
+      {
+            "id": "s34",
+            "title": "Personal AI Memory Moat",
+            "time": "2025.12.18 · 14:10",
+            "hash": "0x1b80e462c326aed6c8f750b2d551bf98",
+            "type": "product",
+            "icon": "link",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 8410,
+            "y": 874,
+            "summary": "Personalized memory created a defensible layer above commodity models.",
+            "question": "Can durable memory become the product moat?",
+            "reasoning": "The more a system remembers decisions, preferences, and evidence, the harder it is to replace.",
+            "action": "Design memory around high-value decisions, not passive notes.",
+            "confidence": 87,
+            "outcome": "+28.1%",
+            "tags": [
+                  "Personalization",
+                  "Memory Moat",
+                  "Switching Cost"
+            ]
+      },
+      {
+            "id": "s35",
+            "title": "Agent Marketplace Signal",
+            "time": "2026.01.22 · 09:30",
+            "hash": "0x6a72a425e664222760eb528dda64c71f",
+            "type": "news",
+            "icon": "spark",
+            "accent": "#ffb45f",
+            "side": "above",
+            "x": 8660,
+            "y": 566,
+            "summary": "Agent marketplaces hinted at distribution for specialized automation skills.",
+            "question": "Will agent skills become composable software assets?",
+            "reasoning": "Reusable agents could create a marketplace dynamic if trust, permissions, and evaluation are solved.",
+            "action": "Track marketplaces with strong verification and execution logs.",
+            "confidence": 75,
+            "outcome": "+12.4%",
+            "tags": [
+                  "Agent Marketplace",
+                  "Skills",
+                  "Distribution"
+            ]
+      },
+      {
+            "id": "s36",
+            "title": "Realtime Multimodal UX",
+            "time": "2026.02.19 · 16:15",
+            "hash": "0xb87ab666019dc72e6e77d887e1c46aa1",
+            "type": "product",
+            "icon": "cursor",
+            "accent": "#36d6ff",
+            "side": "below",
+            "x": 8910,
+            "y": 874,
+            "summary": "Voice, vision, and realtime interfaces made AI feel more ambient.",
+            "question": "Will multimodal UX expand daily usage frequency?",
+            "reasoning": "Lower interaction friction increases use cases that text-only chat cannot capture.",
+            "action": "Monitor products that combine realtime interaction with persistent task memory.",
+            "confidence": 79,
+            "outcome": "+15.9%",
+            "tags": [
+                  "Multimodal",
+                  "Realtime",
+                  "Ambient AI"
+            ]
+      },
+      {
+            "id": "s37",
+            "title": "Private AI Deployment",
+            "time": "2026.03.11 · 12:55",
+            "hash": "0x1bd3db84d166fbc5b2588f7cdd9c1f32",
+            "type": "trade",
+            "icon": "shield",
+            "accent": "#66a3ff",
+            "side": "above",
+            "x": 9160,
+            "y": 566,
+            "summary": "Private deployment moved from niche requirement to mainstream enterprise ask.",
+            "question": "Does privacy reshape the AI stack?",
+            "reasoning": "Regulated teams increasingly require private context, auditable routing, and data-boundary controls.",
+            "action": "Favor infrastructure that enables safe deployment without killing usability.",
+            "confidence": 83,
+            "outcome": "+20.2%",
+            "tags": [
+                  "Private AI",
+                  "Enterprise",
+                  "Data Boundaries"
+            ]
+      },
+      {
+            "id": "s38",
+            "title": "AI Operating System Thesis",
+            "time": "2026.04.08 · 10:45",
+            "hash": "0xb84d9a77a7a0711a47240e4416de8e2f",
+            "type": "product",
+            "icon": "target",
+            "accent": "#9175ff",
+            "side": "below",
+            "x": 9410,
+            "y": 874,
+            "summary": "The product thesis shifted from assistant features to an AI operating layer.",
+            "question": "Will AI own the coordination layer across tools?",
+            "reasoning": "Memory, agents, permissions, and workflow execution can combine into a cross-tool operating system.",
+            "action": "Frame the product as a decision operating layer, not just a timeline viewer.",
+            "confidence": 89,
+            "outcome": "+33.6%",
+            "tags": [
+                  "AI OS",
+                  "Coordination",
+                  "Workflow Layer"
+            ]
+      },
+      {
+            "id": "s39",
+            "title": "Proof-of-Reasoning Layer",
+            "time": "2026.04.27 · 13:15",
+            "hash": "0xb495b1cc62abcfdd87467619e4a1cba9",
+            "type": "product",
+            "icon": "shield",
+            "accent": "#41e2a0",
+            "side": "above",
+            "x": 9660,
+            "y": 566,
+            "summary": "Proof records became the trust layer for replayable AI decisions.",
+            "question": "Can proof make AI decisions institutionally trustworthy?",
+            "reasoning": "Hash-linked context, evidence, and outcomes can create verifiable decision provenance.",
+            "action": "Prioritize hash links, evidence integrity, and replayable state snapshots.",
+            "confidence": 90,
+            "outcome": "+36.8%",
+            "tags": [
+                  "Proof",
+                  "Hash Links",
+                  "Provenance"
+            ]
+      },
+      {
+            "id": "s40",
+            "title": "Live Memory Canvas",
+            "time": "2026.05.12 · 17:20",
+            "hash": "0x63e7cb118c3f9039853b3648864e56d9",
+            "type": "product",
+            "icon": "spark",
+            "accent": "#36d6ff",
+            "side": "below",
+            "x": 9910,
+            "y": 874,
+            "summary": "A Figma-like decision canvas became the clearest demo format for memory replay.",
+            "question": "What interface best communicates saved reasoning over saved chat?",
+            "reasoning": "The canvas makes decision history spatial, navigable, and inspectable while keeping evidence links visible.",
+            "action": "Center the demo on interactive hash-linked slices and right-side inspection.",
+            "confidence": 91,
+            "outcome": "+40.5%",
+            "tags": [
+                  "Canvas UX",
+                  "Memory Replay",
+                  "Interactive Demo"
+            ]
+      }
+];
+
+    function Topbar({ mode, setMode, scale, setScale }) {
+      const zoom = Math.round(scale * 100);
+      return (
+        <header className="topbar">
+          <div className="brand">
+            <div className="logo"><Icon type="spark" size={21} /></div>
+            <div>
+              <div className="brand-title">AI Decision Memory</div>
+              <div className="brand-subtitle">40-slice decision replay canvas</div>
+            </div>
+          </div>
+
+          <div className="toolbar-center">
+            <button className={`mode-btn ${mode === 'select' ? 'active' : ''}`} onClick={() => setMode('select')}><Icon type="cursor" size={15}/> Select</button>
+            <button className={`mode-btn ${mode === 'pan' ? 'active' : ''}`} onClick={() => setMode('pan')}><Icon type="hand" size={15}/> Pan</button>
+            <button className={`mode-btn ${mode === 'comment' ? 'active' : ''}`} onClick={() => setMode('comment')}><Icon type="comment" size={15}/> Comment</button>
+            <div className="search"><Icon type="search" size={15}/><input placeholder="Search slices, reasoning, evidence..." /></div>
+          </div>
+
+          <div className="tools">
+            <button className="tool-btn icon" onClick={() => setScale(s => Math.max(.55, +(s - .1).toFixed(2)))}>-</button>
+            <div className="zoom-pill">{zoom}%</div>
+            <button className="tool-btn icon" onClick={() => setScale(s => Math.min(1.45, +(s + .1).toFixed(2)))}>+</button>
+            <button className="tool-btn"><Icon type="share" size={15}/> Share</button>
+            <button className="tool-btn primary"><Icon type="plus" size={15}/> New Slice</button>
+          </div>
+        </header>
+      );
+    }
+
+    function DecisionNode({ node, selected, onSelect, onCenter, onJump }) {
+      return (
+        <article
+          className={`node ${node.side} ${selected ? 'selected' : ''}`}
+          style={{ left: node.x, top: node.y, '--accent': node.accent, '--knot-top': `${800 - node.y}px` }}
+          onMouseDown={(e) => { e.stopPropagation(); onSelect(node.id); }}
+        >
+          <span className="node-knot" />
+          <div className="node-head">
+            <div className="node-icon"><Icon type={node.icon} size={16}/></div>
+            <div>
+              <button className="node-time" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onCenter(node); }}>{node.time}</button>
+              <div className="node-title">{node.title}</div>
+            </div>
+          </div>
+          <p className="node-copy">{node.summary}</p>
+          <button className="node-hash" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onCenter(node); }}>
+            <span className="node-hash-label">Hash</span>
+            <span className="node-hash-value">{node.hash}</span>
+          </button>
+          <div className="best-buy-row">
+            <span className="best-buy-label">Best Buy Time</span>
+            {node.bestBuyRefs && node.bestBuyRefs.length ? (
+              <div className="best-buy-list">
+                {node.bestBuyRefs.map(ref => (
+                  <button key={ref.id} className="best-buy-link" title={`Jump backward to ${ref.title} · ${ref.hash}`} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onJump(ref.id); }}>
+                    {ref.hash}<small>{ref.time.split(' · ')[0]}</small>
+                  </button>
+                ))}
+              </div>
+            ) : <span className="best-buy-empty">No prior hash</span>}
+          </div>
+          <div className="node-meta">
+            <span className="node-tag">{node.type}</span>
+            <span className="score">{node.confidence}%</span>
+          </div>
+        </article>
+      );
+    }
+
+    function Canvas({ nodes, selectedId, setSelectedId, scale, setScale, focusRequest }) {
+      const [pan, setPan] = useState({ x: -3550, y: -320 });
+      const [isAnimating, setIsAnimating] = useState(false);
+      const [moveDuration, setMoveDuration] = useState(720);
+      const drag = useRef(null);
+      const shellRef = useRef(null);
+      const animationTimer = useRef(null);
+      const didInitialCenter = useRef(false);
+      const selected = nodes.find(n => n.id === selectedId);
+      const TIMELINE_Y = 800;
+
+      useEffect(() => {
+        const shell = shellRef.current;
+        if (!shell || didInitialCenter.current) return;
+        const rect = shell.getBoundingClientRect();
+        setPan(prev => ({ ...prev, y: rect.height / 2 - TIMELINE_Y * scale }));
+        didInitialCenter.current = true;
+      }, [scale]);
+
+      useEffect(() => {
+        if (!focusRequest) return;
+        const target = nodes.find(n => n.id === focusRequest.id);
+        if (target) centerNode(target);
+      }, [focusRequest]);
+
+      function centerNode(node) {
+        const shell = shellRef.current;
+        if (!shell) return;
+        const rect = shell.getBoundingClientRect();
+        const nodeCenterX = node.x + 91;
+        const nextX = rect.width / 2 - nodeCenterX * scale;
+        setSelectedId(node.id);
+        setIsAnimating(true);
+        window.clearTimeout(animationTimer.current);
+        setPan(prev => {
+          const distance = Math.abs(nextX - prev.x);
+          const duration = Math.max(420, Math.min(1800, Math.round(360 + distance * 0.18)));
+          setMoveDuration(duration);
+          animationTimer.current = window.setTimeout(() => setIsAnimating(false), duration + 60);
+          return {
+            x: nextX,
+            y: prev.y
+          };
+        });
+      }
+
+      function centerById(id) {
+        const target = nodes.find(n => n.id === id);
+        if (target) centerNode(target);
+      }
+
+      function handleMouseDown(e) {
+        setIsAnimating(false);
+        drag.current = { startX: e.clientX, startY: e.clientY, x: pan.x, y: pan.y };
+        setSelectedId(null);
+      }
+      function handleMouseMove(e) {
+        if (!drag.current) return;
+        const dx = e.clientX - drag.current.startX;
+        const dy = e.clientY - drag.current.startY;
+        setPan({ x: drag.current.x + dx, y: drag.current.y + dy });
+      }
+      function handleMouseUp() { drag.current = null; }
+      function handleWheel(e) {
+        e.preventDefault();
+        const next = Math.min(1.45, Math.max(.55, scale - e.deltaY * 0.001));
+        setScale(+next.toFixed(2));
+      }
+
+      return (
+        <main ref={shellRef} className="canvas-shell" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel}>
+          <div className="canvas-watermark"><Icon type="cursor" size={14}/> Figma-like canvas · drag to pan · wheel to zoom · click hash to jump</div>
+          <div className={`canvas-stage ${isAnimating ? 'animating' : ''}`} style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`, '--move-duration': `${moveDuration}ms` }}>
+            <div className="stage-bg-line" />
+            {nodes.map(node => <DecisionNode key={node.id} node={node} selected={selectedId === node.id} onSelect={setSelectedId} onCenter={centerNode} onJump={centerById} />)}
+          </div>
+
+          <div className="floating-controls">
+            <button className="tool-btn icon" onClick={() => setScale(.8)} title="Reset zoom">⌂</button>
+            <button className="tool-btn icon" onClick={() => selected ? centerNode(selected) : setPan(prev => ({ x: -3550, y: prev.y }))} title="Center selected">◎</button>
+            <button className="tool-btn"><Icon type="shield" size={15}/> Proof Layer</button>
+          </div>
+
+          <div className="mini-map">
+            <div className="mini-title">Canvas Map</div>
+            <div className="mini-stage">
+              {nodes.map((n) => <i key={n.id} className="mini-dot" style={{ left: n.x / 59, top: n.y / 11, background: n.accent }} />)}
+              <span className="mini-viewport" />
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    function Inspector({ node, onJump }) {
+      const [tab, setTab] = useState('reason');
+      if (!node) {
+        return <aside className="inspector"><div className="empty-state"><div><Icon type="spark" size={34}/><h2>No slice selected</h2><p>Select a decision slice on the canvas to inspect its reasoning, context, evidence, and outcome.</p></div></div></aside>;
+      }
+      const content = {
+        reason: node.reasoning,
+        context: node.question,
+        evidence: 'Evidence includes market news, financial reports, model release notes, internal signal snapshots, and immutable proof records.',
+        outcome: `Recorded outcome: ${node.outcome}. Confidence at decision time: ${node.confidence}%.`
+      }[tab];
+
+      return (
+        <aside className="inspector">
+          <div className="inspector-inner">
+            <section className="panel">
+              <div className="panel-head">
+                <h2>Slice Inspector</h2>
+                <span className="badge">Selected</span>
+              </div>
+              <div className="slice-profile" style={{ '--accent': node.accent }}>
+                <div className="slice-title-row">
+                  <div className="slice-avatar"><Icon type={node.icon} size={22}/></div>
+                  <div>
+                    <strong>{node.title}</strong>
+                    <small>{node.time}</small>
+                    <small>{node.hash}</small>
+                  </div>
+                </div>
+                <div className="inspector-best-buy">
+                  <label>Best Buy Time</label>
+                  {node.bestBuyRefs && node.bestBuyRefs.length ? (
+                    <div className="inspector-best-buy-list">
+                      {node.bestBuyRefs.map(ref => (
+                        <div className="inspector-best-buy-item" key={ref.id}>
+                          <span className="inspector-best-buy-time">{ref.time.split(' · ')[0]}</span>
+                          <button title={`Jump backward to ${ref.title} · ${ref.hash}`} onClick={() => onJump(ref.id)}>{ref.hash}</button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <span>No prior hash</span>}
+                </div>
+                <div className="tabs">
+                  <button className={`tab ${tab === 'reason' ? 'active' : ''}`} onClick={() => setTab('reason')}>Reason</button>
+                  <button className={`tab ${tab === 'context' ? 'active' : ''}`} onClick={() => setTab('context')}>Context</button>
+                  <button className={`tab ${tab === 'evidence' ? 'active' : ''}`} onClick={() => setTab('evidence')}>Evidence</button>
+                  <button className={`tab ${tab === 'outcome' ? 'active' : ''}`} onClick={() => setTab('outcome')}>Outcome</button>
+                </div>
+              </div>
+              <div className="section">
+                <h3>{tab}</h3>
+                <p>{content}</p>
+              </div>
+              <div className="metric-grid">
+                <div className="metric"><label>Confidence</label><strong>{node.confidence}%</strong></div>
+                <div className="metric"><label>Outcome</label><strong>{node.outcome}</strong></div>
+              </div>
+              <div className="section">
+                <h3>Decision Action</h3>
+                <p>{node.action}</p>
+              </div>
+              <div className="section">
+                <h3>Tags</h3>
+                <div className="tags">{node.tags.map(tag => <span className="tag-chip" key={tag}>{tag}</span>)}</div>
+                <button className="replay-btn">Replay This Decision</button>
+              </div>
+            </section>
+          </div>
+        </aside>
+      );
+    }
+
+    function App() {
+      const [mode, setMode] = useState('select');
+      const [scale, setScale] = useState(.8);
+      const [selectedId, setSelectedId] = useState('s20');
+      const [focusRequest, setFocusRequest] = useState(null);
+      const nodes = useMemo(() => {
+        // Best Buy Time links are strictly backward on the visual timeline:
+        // a card may only reference cards with a smaller x-position.
+        // This prevents any future / right-side hash reference.
+        const orderedByX = [...initialNodes].sort((a, b) => a.x - b.x);
+        const candidatesById = new Map();
+        orderedByX.forEach((node, index) => {
+          // Strictly backward only: link to cards 4, 8, and 12 positions earlier when available.
+          // That creates long-range reasoning backlinks without ever referencing a future/right-side card.
+          const chosen = [4, 8, 12]
+            .map(offset => orderedByX[index - offset])
+            .filter(Boolean);
+          candidatesById.set(node.id, chosen.map(ref => ({
+            id: ref.id,
+            hash: ref.hash,
+            time: ref.time,
+            title: ref.title,
+            x: ref.x
+          })));
+        });
+        return initialNodes.map(node => ({
+          ...node,
+          bestBuyRefs: candidatesById.get(node.id) || []
+        }));
+      }, []);
+      const selected = nodes.find(n => n.id === selectedId);
+      const requestFocus = (id) => {
+        setSelectedId(id);
+        setFocusRequest({ id, nonce: Date.now() });
+      };
+
+      return (
+        <div className="app">
+          <Topbar mode={mode} setMode={setMode} scale={scale} setScale={setScale}/>
+          <div className="workspace">
+            <Canvas nodes={nodes} selectedId={selectedId} setSelectedId={setSelectedId} scale={scale} setScale={setScale} focusRequest={focusRequest}/>
+            <Inspector node={selected} onJump={requestFocus}/>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
