@@ -1,100 +1,130 @@
-# MemChain Design Spec
+# MemChain Agent Skill Design
 
 Date: 2026-05-12
 
 ## Summary
 
-MemChain is a local CLI tool for AI trading agents.
+MemChain is an Agent Skill plus a thin CLI for verifiable agent memory.
 
-It takes an agent's entire memories folder, such as `~/.openclaw/memories`, puts it under git version control, stores signed memory snapshots on IPFS, and records each pre-trade memory commit on Monad.
+The skill teaches an AI trading agent when to create a memory proof. The CLI performs the proof transaction: git commit, IPFS upload, and Monad anchoring.
 
-The core promise:
-
-```text
-Given a Monad record and a git commit hash, anyone can restore the exact memory state the trading agent had before making a decision.
-```
-
-This makes an agent's past thought framework auditable, replayable, and eventually tradable as an on-chain memory asset.
-
-## Product Positioning
-
-AI trading agents will increasingly act as economic actors. They will read market context, use memory, call tools, make trading decisions, and operate capital.
-
-The problem is that their memories are usually mutable local files or centralized database records. After a bad decision, an agent operator can rewrite, delete, or selectively disclose history.
-
-MemChain turns memory into a verifiable timeline:
-
-- Git gives exact local versions and diffs.
-- IPFS stores retrievable memory artifacts.
-- Monad anchors pre-decision commits in a public ordering.
-- The CLI restores historical memory states by commit hash.
-
-The simplest analogy:
+Core rule:
 
 ```text
-MemChain is a black box recorder for AI trading agents.
+The agent explicitly calls MemChain before an economic action. MemChain never watches, wraps, or bypasses the agent to trigger commits.
 ```
 
-## V1 Scope
+Given a Monad record and a git commit hash, an auditor can restore the memory state the agent chose to prove before acting.
 
-V1 is CLI-first and local-first.
+## Product Boundary
 
-It does not build a trading agent. It wraps or integrates with existing trading agents by tracking their memory folders.
+MemChain is not the trading agent and not a trading hook.
 
-Supported examples:
+It has two parts:
 
-- `~/.openclaw/memories`
-- `~/.hermes/memories`
-- `~/.claude/memories`
-- Any folder containing markdown, JSON, logs, decision traces, strategy notes, or reflections
+- `memchain/` Agent Skill: instructions, examples, and references that an agent loads when a task requires memory proof.
+- `memchain` CLI: local proof engine that writes manifests, commits memory, uploads artifacts, anchors proofs, verifies receipts, and checks out historical states.
+
+The agent owns timing and intent. The CLI owns mechanics.
+
+## Agent Skill Package
+
+The skill follows the Agent Skills directory shape:
+
+```text
+memchain/
+  SKILL.md
+  scripts/
+    commit-memory.sh
+  references/
+    intent-schema.md
+    receipt-schema.md
+    verification.md
+```
+
+`SKILL.md` should stay short enough for direct loading. Long schemas and operational detail live in `references/`.
+
+Frontmatter:
+
+```yaml
+---
+name: memchain
+description: Create verifiable memory proofs for AI trading agents. Use before trades, rebalances, strategy updates, external commitments, or when auditing, verifying, replaying, or packaging anchored memory.
+compatibility: Requires the memchain CLI, git, network access for IPFS and Monad RPC, and a configured agent memory folder.
+allowed-tools: Bash(memchain:*) Bash(git:*) Read Write
+---
+```
+
+The body should instruct the agent to:
+
+1. identify whether the next action needs proof
+2. write an intent file
+3. run `memchain commit --intent <path>`
+4. inspect the receipt
+5. store the receipt beside the decision or transaction
+6. continue with the action only after proof succeeds, unless the user explicitly allows degraded mode
 
 ## Goals
 
-- Initialize git tracking for an agent memory folder.
-- Automatically commit the memory folder before each trading decision.
-- Upload the commit artifact to IPFS.
-- Record the commit hash, IPFS CID, and metadata hash on Monad.
-- Restore a historical memory state with `git checkout`.
-- Verify that a memory artifact matches the Monad anchor.
-- Package selected anchored memory commits as sellable Memory Blocks.
+- Package MemChain as an agent-usable skill.
+- Keep proof creation explicit and agent-directed.
+- Commit memory only after an agent calls `memchain commit`.
+- Let the CLI perform git, IPFS, and Monad steps atomically from the agent's perspective.
+- Return a receipt that the agent can attach to a trade, strategy update, or audit log.
+- Support verification and checkout for replay.
 
 ## Non-Goals
 
-- Build a profitable trading strategy.
-- Prove LLM output determinism.
-- Store raw memory text on-chain.
-- Build a full marketplace in v1.
-- Guarantee privacy after public IPFS upload.
-- Replace agent-native memory formats.
+- Background file watching.
+- Automatic commits on memory folder changes.
+- Trading command wrappers such as `memchain run -- trade`.
+- Exchange, wallet, or MCP interception.
+- Hidden hooks that trigger before a trade without agent intent.
+- Inferring decision intent from file writes.
+- Building a trading strategy.
+- Proving deterministic model output.
+- Publicly uploading secrets.
+
+## When Agents Use MemChain
+
+An agent should call MemChain before:
+
+- placing or modifying a trade
+- rebalancing a portfolio
+- changing risk limits or strategy rules
+- publishing research that another agent may rely on
+- making an external commitment with financial consequence
+- packaging memory as a Memory Block
+
+An agent may skip MemChain for ordinary analysis, scratch work, or reversible local edits.
 
 ## Core Workflow
 
 ```text
-1. User points MemChain at an agent memory folder.
-2. MemChain initializes or validates a git repo in that folder.
-3. Before a trading decision, MemChain creates a pre-decision commit.
-4. MemChain packages that commit as a git bundle or snapshot.
-5. MemChain uploads the artifact to IPFS.
-6. MemChain anchors the commit record on Monad.
-7. The trading agent makes its decision.
-8. Later, an auditor uses the commit hash to restore the exact pre-decision memory state.
+1. Agent loads the MemChain skill because the task is economically significant.
+2. Agent prepares an intent file describing the planned action.
+3. Agent calls `memchain commit --intent trade-intent.json`.
+4. CLI validates the memory repo and redaction rules.
+5. CLI writes a manifest into `.memchain/decisions/`.
+6. CLI creates a git commit.
+7. CLI packages the commit as a git bundle or snapshot.
+8. CLI uploads the artifact to IPFS.
+9. CLI anchors the proof on Monad.
+10. CLI writes and returns a receipt.
+11. Agent stores the receipt in its decision log.
+12. Agent performs the trade or other economic action.
 ```
 
-The important design choice is that the anchor happens before the decision. The record proves what the agent knew, remembered, and believed at decision time.
+The proof happens before the action, but the trigger comes from the agent.
 
 ## CLI Interface
 
 ```bash
 memchain init ~/.openclaw/memories --agent openclaw-demo
 
-memchain before-decision \
-  --agent openclaw-demo \
-  --decision eth-long-001 \
-  --summary "Pre-trade memory snapshot before ETH long decision"
+memchain commit --intent trade-intent.json
 
-memchain verify \
-  --agent openclaw-demo \
-  --commit <git_commit_hash>
+memchain verify --receipt .memchain/receipts/eth-long-001.json
 
 memchain checkout \
   --agent openclaw-demo \
@@ -110,17 +140,11 @@ memchain block create \
   --name "ETH breakout decision memory"
 ```
 
-V1 can also expose a wrapper mode:
-
-```bash
-memchain run --agent openclaw-demo -- openclaw trade ETH
-```
-
-In wrapper mode, MemChain records the pre-decision memory commit before handing control to the trading agent.
+Do not include a v1 wrapper mode. If a user wants shell composition, the trading agent should run `memchain commit` first, inspect the receipt, and then run its trade command.
 
 ## Memory Repo Layout
 
-MemChain should keep its own metadata small and isolated.
+MemChain keeps metadata isolated.
 
 ```text
 ~/.openclaw/memories/
@@ -128,6 +152,8 @@ MemChain should keep its own metadata small and isolated.
   .memchain/
     agent.json
     decisions/
+      eth-long-001.json
+    receipts/
       eth-long-001.json
     anchors/
       <commit_hash>.json
@@ -141,43 +167,55 @@ MemChain should keep its own metadata small and isolated.
 
 Everything outside `.memchain/` belongs to the trading agent.
 
-## Pre-Decision Manifest
+## Intent File
 
-Every pre-decision snapshot writes a manifest before committing.
+The agent writes an intent before calling MemChain.
 
 ```json
 {
-  "schema": "memchain.predecision.v1",
+  "schema": "memchain.intent.v1",
   "agent_id": "openclaw-demo",
   "decision_id": "eth-long-001",
-  "created_at": "2026-05-12T10:00:00Z",
-  "memory_commit": "2e7b8f1c4a9d0e3f6b5c8a1d4e7f9012bcdef345",
-  "parent_commit": "9d4f7e1b6c8a2e5f0a1b3c4d5e6f7890abcde123",
-  "summary": "Pre-trade memory snapshot before ETH long decision",
-  "agent": {
-    "name": "openclaw",
-    "version": "demo",
-    "memory_path": "~/.openclaw/memories"
-  },
-  "decision_context": {
-    "symbols": ["ETH"],
-    "mode": "paper",
-    "data_source": "mock-binance-ohlcv"
-  }
+  "action": "trade",
+  "summary": "Considering ETH long after breakout confirmation",
+  "symbols": ["ETH"],
+  "mode": "paper",
+  "strategy_version": "dual-momentum-v0",
+  "external_reference": "optional-order-or-task-id"
 }
 ```
 
-This manifest describes the memory state before the agent decides. Post-decision results may be committed later, but they are not the main proof.
+The intent is not a trade order. It is the agent's declared reason for proving memory now.
+
+## Commit Manifest
+
+`memchain commit` writes a manifest before creating the git commit.
+
+```json
+{
+  "schema": "memchain.manifest.v1",
+  "agent_id": "openclaw-demo",
+  "decision_id": "eth-long-001",
+  "created_at": "2026-05-12T10:00:00Z",
+  "parent_commit": "9d4f7e1b6c8a2e5f0a1b3c4d5e6f7890abcde123",
+  "summary": "Considering ETH long after breakout confirmation",
+  "intent_sha256": "sha256:...",
+  "redaction_report_sha256": "sha256:...",
+  "memory_path": "~/.openclaw/memories"
+}
+```
+
+The resulting git commit hash is added to the receipt, not guessed before commit creation.
 
 ## IPFS Artifact
 
-The preferred artifact is a git bundle because it preserves commit history:
+The preferred artifact is a git bundle:
 
 ```bash
 git bundle create memchain-openclaw-demo-<commit>.bundle --all
 ```
 
-The artifact metadata is canonical JSON:
+Artifact metadata is canonical JSON:
 
 ```json
 {
@@ -188,17 +226,16 @@ The artifact metadata is canonical JSON:
   "parent_commit_hash": "9d4f7e1b6c8a2e5f0a1b3c4d5e6f7890abcde123",
   "artifact_type": "git_bundle",
   "artifact_sha256": "sha256:...",
-  "ipfs_cid": "bafy...",
   "manifest_path": ".memchain/decisions/eth-long-001.json",
   "manifest_sha256": "sha256:..."
 }
 ```
 
-`metadataHash` on-chain is the `sha256` hash of this canonical metadata.
+`metadataHash` on-chain is the hash of this canonical metadata.
 
 ## Monad Anchor
 
-The v1 contract should stay compact.
+The v1 contract stays compact.
 
 ```solidity
 struct MemoryAnchor {
@@ -245,24 +282,46 @@ event MemoryAnchored(
 );
 ```
 
-The Solidity contract stores `bytes32(keccak256(bytes(gitCommitHash)))`. The original git commit string remains in the IPFS metadata and local anchor file.
+The contract stores `bytes32(keccak256(bytes(gitCommitHash)))`. The original git commit string stays in IPFS metadata and local receipts.
+
+## Receipt
+
+`memchain commit` returns a receipt for the agent to store.
+
+```json
+{
+  "schema": "memchain.receipt.v1",
+  "agent_id": "openclaw-demo",
+  "decision_id": "eth-long-001",
+  "commit_hash": "2e7b8f1c4a9d0e3f6b5c8a1d4e7f9012bcdef345",
+  "parent_commit_hash": "9d4f7e1b6c8a2e5f0a1b3c4d5e6f7890abcde123",
+  "ipfs_cid": "bafy...",
+  "artifact_sha256": "sha256:...",
+  "metadata_sha256": "sha256:...",
+  "monad_tx": "0xabc...",
+  "registry": "0xregistry...",
+  "created_at": "2026-05-12T10:00:03Z"
+}
+```
+
+The receipt is the handoff back to the agent. If receipt creation fails, the agent should not proceed with the economic action unless the user explicitly accepts an unanchored action.
 
 ## Verification
 
-`memchain verify` proves that a memory artifact matches the Monad record.
+`memchain verify` proves that a receipt matches the anchored memory artifact.
 
 It checks:
 
-- The Monad anchor exists for `agent_id + commit_hash`.
-- The IPFS CID resolves.
-- The artifact hash matches the on-chain `artifactHash`.
-- The artifact contains the requested git commit.
-- The commit parent matches `parentCommitHash`.
-- The metadata hash matches `metadataHash`.
-- The manifest hash matches the checked-out manifest file.
-- The memory tree can be restored cleanly.
+- the Monad anchor exists for `agent_id + commit_hash`
+- the IPFS CID resolves
+- the artifact hash matches `artifactHash`
+- the metadata hash matches `metadataHash`
+- the artifact contains the requested git commit
+- the commit parent matches `parentCommitHash`
+- the manifest hash matches the checked-out manifest file
+- the memory tree can be restored cleanly
 
-Verification fails if any required hash or parent link does not match.
+Verification fails closed on missing, mismatched, or unverifiable data.
 
 ## Replay / Checkout
 
@@ -271,47 +330,53 @@ Verification fails if any required hash or parent link does not match.
 It should:
 
 ```text
-1. Read the Monad anchor.
+1. Read the receipt or Monad anchor.
 2. Fetch the IPFS artifact.
 3. Verify artifact and metadata hashes.
 4. Clone or unbundle the git repo.
 5. Checkout the requested commit.
 6. Export the memory tree to the requested output directory.
-7. Print the decision manifest and commit diff.
+7. Print the manifest and commit diff.
 ```
 
-This does not guarantee the same model output. It restores the agent's memory context so a human or another agent can inspect the thought framework that existed before the trade.
+This restores memory context. It does not guarantee the same model output.
 
-## Memory Blocks as Assets
+## Security and Privacy
+
+Memory folders may contain secrets or private alpha.
+
+V1 must include:
+
+- `.memchainignore`
+- default deny patterns for `.env`, private keys, wallet files, browser profiles, key stores, and account exports
+- a redaction report before IPFS upload
+- explicit user or agent policy approval before public IPFS upload
+- local/mock IPFS mode for demos
+
+Anything uploaded to public IPFS should be treated as public.
+
+## Failure Policy
+
+The skill should tell agents to fail closed for trading actions:
+
+- If git commit fails, do not trade.
+- If IPFS upload fails, do not trade unless local-only proof is explicitly allowed.
+- If Monad anchoring fails, do not trade unless degraded mode is explicitly allowed.
+- If redaction checks fail, stop and ask for user intervention.
+
+The CLI should surface one structured error and leave enough local state for retry.
+
+## Memory Blocks
 
 A Memory Block is a selected commit or commit range from an anchored memory timeline.
 
 It can represent:
 
-- A pre-decision memory snapshot.
-- A strategy lesson across several decisions.
-- A redacted set of reflections.
-- A proven history segment from a trading agent.
-- A distilled experience package for another agent.
-
-Memory Block manifest:
-
-```json
-{
-  "schema": "memchain.block.v1",
-  "block_id": "eth-breakout-memory",
-  "seller_agent_id": "openclaw-demo",
-  "source_commits": [
-    "commit_a",
-    "commit_b"
-  ],
-  "payload_cid": "bafy...",
-  "payload_sha256": "sha256:...",
-  "provenance_anchor": "monad_tx_or_event_id",
-  "license": "demo-evaluation-only",
-  "price": "10 MON"
-}
-```
+- a pre-trade memory snapshot
+- a strategy lesson across several decisions
+- a redacted set of reflections
+- a proven history segment from a trading agent
+- a distilled experience package for another agent
 
 V1 only needs a listing proof:
 
@@ -321,72 +386,48 @@ This Memory Block came from anchored commits owned by this agent.
 
 Payment, encryption, buyer-specific licensing, and delivery control are later work.
 
-## Security and Privacy
-
-Memory folders may contain secrets or private alpha.
-
-V1 must include:
-
-- `.memchainignore`
-- default deny patterns for `.env`, private keys, wallet files, and key stores
-- a file summary before IPFS upload
-- explicit confirmation before public IPFS upload
-- mock IPFS mode for local demos
-
-Important limitation:
-
-```text
-Anything uploaded to public IPFS should be treated as public.
-```
-
-Private Memory Blocks require encryption and access control, which are outside the v1 core.
-
 ## Demo Flow
-
-Use one simple demo agent and one decision.
 
 ```bash
 memchain init ./demo/openclaw-memories --agent openclaw-demo
 
-memchain before-decision \
-  --agent openclaw-demo \
-  --decision eth-long-001 \
-  --summary "Pre-trade memory snapshot before ETH long decision"
+# Agent writes trade-intent.json.
 
-# Simulate the trading agent making a decision after the anchor.
+memchain commit --intent trade-intent.json
 
-memchain verify --agent openclaw-demo --commit <commit>
+# Agent stores the receipt, then simulates the trade.
+
+memchain verify --receipt ./demo/openclaw-memories/.memchain/receipts/eth-long-001.json
 
 memchain checkout \
   --agent openclaw-demo \
   --commit <commit> \
   --out ./replay/eth-long-001
-
-memchain block create \
-  --agent openclaw-demo \
-  --from <commit> \
-  --to <commit> \
-  --name "ETH long pre-decision memory"
 ```
 
 The demo should show:
 
-- the local memory folder before decision
+- the skill instruction that caused the agent to call MemChain
+- the intent file
 - the git commit
 - the IPFS CID
 - the Monad anchor
+- the receipt stored with the decision
 - successful verification
 - checkout into a replay folder
-- a Memory Block listing derived from that anchored commit
 
 ## Implementation Boundary
 
 Suggested modules:
 
 ```text
+skill/
+  SKILL.md
+  references/
+
 cli/
   init
-  before_decision
+  commit
   verify
   checkout
   diff
@@ -394,7 +435,9 @@ cli/
 
 core/
   git_repo
+  intent
   manifest
+  receipt
   artifact
   ipfs
   monad
@@ -408,23 +451,27 @@ demo/
   openclaw-memories/
 ```
 
-Keep the system thin. MemChain should compose existing primitives instead of inventing a custom versioning system.
+Keep the system thin. MemChain composes git, IPFS, Monad, and agent skill instructions instead of inventing a custom memory runtime.
 
 ## V1 Build Order
 
-1. Local CLI and memory repo initialization.
-2. Pre-decision manifest creation.
-3. Git commit before decision.
-4. Git bundle artifact.
-5. Local/mock IPFS storage.
-6. Monad anchor contract.
-7. CLI verification.
-8. Historical checkout.
-9. Tamper failure demo.
-10. Memory Block listing demo.
+1. Agent skill package with `SKILL.md` and schemas.
+2. Local CLI initialization.
+3. Intent validation.
+4. Manifest creation.
+5. Git commit.
+6. Git bundle artifact.
+7. Local/mock IPFS storage.
+8. Monad anchor contract.
+9. Receipt writing.
+10. Verification.
+11. Historical checkout.
+12. Tamper failure demo.
+13. Memory Block listing demo.
 
 ## References
 
+- Agent Skills specification: https://agentskills.io/specification
 - Local memory lifecycle context: `memory-design.md`
 - EIP-8004: https://eips.ethereum.org/EIPS/eip-8004
 - Local Monad skill notes: `.agents/skills/monskill/`

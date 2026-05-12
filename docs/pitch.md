@@ -1,4 +1,4 @@
-# MemChain: Onchain Registry for Trading Agent Memories
+# MemChain: Onchain Git Registry for Trading Agent Memories
 
 1. 一句话定位
 
@@ -775,23 +775,3 @@ Over time, agent memory becomes more than an audit trail. It becomes an asset. A
 MemChain starts with trading agents because the pain is sharp, the outcomes are measurable, and the willingness to pay is high. But the long-term vision is broader: every serious AI agent that handles money, governance, contracts, or mission-critical workflows will need verifiable memory.
 
 MemChain makes AI agents accountable economic actors.
-
-⸻
-
-18. 最强定位语
-
-可选：
-
-1. MemChain: The verifiable memory layer for AI trading agents.
-2. Git for agent memory. Proof for agent reputation.
-3. Before an AI agent trades, MemChain proves what it remembered.
-4. From black-box bots to accountable economic agents.
-5. ERC-8004 tells you who the agent is. MemChain tells you what the agent knew.
-
-我建议主标语使用：
-
-MemChain: The verifiable memory layer for AI trading agents.
-
-副标语使用：
-
-ERC-8004 tells you who the agent is. MemChain proves what the agent remembered when it acted.
