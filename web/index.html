@@ -518,7 +518,24 @@
       </p>
       <div style="margin-top:16px; font-size:0.65em; color:var(--monad-text-dim);">
         不可篡改 · 可审计 · 可验证
-      </p>
+      </div>
+      <button id="launch-demo-btn" style="
+        display:inline-flex; align-items:center; gap:6px;
+        margin-top:22px;
+        padding:10px 22px;
+        border:1px solid rgba(131,110,249,0.4);
+        border-radius:10px;
+        background:linear-gradient(135deg, rgba(131,110,249,0.24), rgba(34,211,238,0.12));
+        color:#fff;
+        font-size:0.62em;
+        font-family:'Inter',sans-serif;
+        font-weight:600;
+        cursor:pointer;
+        box-shadow:0 4px 20px rgba(131,110,249,0.25);
+        transition:all .25s;
+        white-space:nowrap;
+      " onmouseenter="this.style.boxShadow='0 6px 28px rgba(131,110,249,0.4)';this.style.borderColor='rgba(131,110,249,0.7)'" onmouseleave="this.style.boxShadow='0 4px 20px rgba(131,110,249,0.25)';this.style.borderColor='rgba(131,110,249,0.4)'"
+      >Web 应用 Demo</button>
     </div>
   </div>
 </section>
@@ -630,37 +647,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<!-- SLIDE 6 — Decision Replay (Product Demo) — Embedded -->
-<!-- ═══════════════════════════════════════════════════ -->
-<section data-background-color="#070914" style="padding:0 !important;">
-  <div style="position:absolute; left:24px; top:18px; z-index:30; display:flex; align-items:center; gap:12px;">
-    <div class="monad-badge" style="font-size:0.48em; background:rgba(7,9,20,0.75); backdrop-filter:blur(12px); pointer-events:none;">
-      <span>LIVE DEMO</span> · 复现每一次关键决策时刻 · 点击 tx hash 可跳转滑动
-    </div>
-    <button id="launch-demo-btn" style="
-      display:inline-flex; align-items:center; gap:6px;
-      padding:7px 18px;
-      border:1px solid rgba(131,110,249,0.4);
-      border-radius:10px;
-      background:linear-gradient(135deg, rgba(131,110,249,0.2), rgba(34,211,238,0.1));
-      color:#fff;
-      font-size:13px;
-      font-family:'Inter',sans-serif;
-      font-weight:600;
-      cursor:pointer;
-      backdrop-filter:blur(12px);
-      box-shadow:0 4px 20px rgba(131,110,249,0.25);
-      transition:all .25s;
-      white-space:nowrap;
-      z-index:31;
-    " onmouseenter="this.style.boxShadow='0 6px 28px rgba(131,110,249,0.4)';this.style.borderColor='rgba(131,110,249,0.7)'" onmouseleave="this.style.boxShadow='0 4px 20px rgba(131,110,249,0.25)';this.style.borderColor='rgba(131,110,249,0.4)'"
-    >🚀 打开 AI Decision Memory</button>
-  </div>
-  <iframe id="demo-frame" style="position:absolute;inset:0;width:100%;height:100%;border:none;background:#070914;" sandbox="allow-scripts allow-same-origin"></iframe>
-</section>
-
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- SLIDE 7 — Why Monad -->
+<!-- SLIDE 6 — Why Monad -->
 <!-- ═══════════════════════════════════════════════════ -->
 <section>
   <h3>为什么选择 Monad</h3>
@@ -719,7 +706,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<!-- SLIDE 8 — Comparison & Value -->
+<!-- SLIDE 7 — Comparison & Value -->
 <!-- ═══════════════════════════════════════════════════ -->
 <section>
   <h3>差异化价值</h3>
@@ -765,7 +752,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<!-- SLIDE 9 — Use Cases -->
+<!-- SLIDE 8 — Use Cases -->
 <!-- ═══════════════════════════════════════════════════ -->
 <section>
   <h3>应用场景</h3>
@@ -811,7 +798,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<!-- SLIDE 10 — CTA / Closing -->
+<!-- SLIDE 9 — CTA / Closing -->
 <!-- ═══════════════════════════════════════════════════ -->
 <section class="center-content">
   <div class="monad-badge" style="margin-bottom:24px;">
