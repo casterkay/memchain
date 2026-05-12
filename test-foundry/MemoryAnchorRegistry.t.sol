@@ -18,6 +18,7 @@ contract MemoryAnchorRegistryTest {
         bytes32 artifactHash = keccak256(bytes("artifact"));
 
         registry.registerAgent(agentId, "ipfs://agent");
+        require(registry.agentOwner(agentId) == address(this), "owner mismatch");
         registry.anchorMemory(agentId, commitHash, parentCommitHash, metadataHash, artifactHash, "local:cid");
 
         MemoryAnchorRegistry.MemoryAnchor memory anchor = registry.getMemory(agentId, commitHash);
@@ -45,5 +46,38 @@ contract MemoryAnchorRegistryTest {
             failed = true;
         }
         require(failed, "duplicate anchor accepted");
+    }
+
+    function testRejectAnchorFromNonOwner() public {
+        bytes32 agentId = keccak256(bytes("openclaw-demo"));
+        registry.registerAgent(agentId, "ipfs://agent");
+
+        AnchorAttacker attacker = new AnchorAttacker(registry);
+        bool failed;
+        try attacker.anchor(agentId) {
+            failed = false;
+        } catch {
+            failed = true;
+        }
+        require(failed, "non-owner anchor accepted");
+    }
+}
+
+contract AnchorAttacker {
+    MemoryAnchorRegistry registry;
+
+    constructor(MemoryAnchorRegistry registry_) {
+        registry = registry_;
+    }
+
+    function anchor(bytes32 agentId) external {
+        registry.anchorMemory(
+            agentId,
+            keccak256(bytes("attacker-commit")),
+            bytes32(0),
+            keccak256(bytes("metadata")),
+            keccak256(bytes("artifact")),
+            "local:attacker"
+        );
     }
 }

@@ -4,6 +4,7 @@ import { initRepo } from "./core/init.js";
 import { commitMemory } from "./core/commit.js";
 import { verifyReceipt } from "./core/verify.js";
 import { checkoutReceipt } from "./core/checkout.js";
+import { registerAgentOnchain } from "./core/monad.js";
 
 const program = new Command();
 
@@ -32,6 +33,15 @@ program
       anchor: options.anchor
     });
     console.log(JSON.stringify(receipt, null, 2));
+  });
+
+program
+  .command("agent-register")
+  .requiredOption("--agent <agentId>")
+  .requiredOption("--metadata-uri <metadataUri>")
+  .action(async (options: { agent: string; metadataUri: string }) => {
+    const result = await registerAgentOnchain(options.agent, options.metadataUri);
+    console.log(JSON.stringify(result, null, 2));
   });
 
 program

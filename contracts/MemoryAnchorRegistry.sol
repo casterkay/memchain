@@ -13,7 +13,7 @@ contract MemoryAnchorRegistry {
         address recorder;
     }
 
-    event AgentRegistered(bytes32 indexed agentId, string metadataURI, address indexed recorder);
+    event AgentRegistered(bytes32 indexed agentId, string metadataURI, address indexed owner);
 
     event MemoryAnchored(
         bytes32 indexed agentId,
@@ -26,6 +26,7 @@ contract MemoryAnchorRegistry {
     );
 
     mapping(bytes32 => string) public agentMetadataURI;
+    mapping(bytes32 => address) public agentOwner;
     mapping(bytes32 => bytes32) private latest;
     mapping(bytes32 => mapping(bytes32 => MemoryAnchor)) private anchors;
 
@@ -33,6 +34,7 @@ contract MemoryAnchorRegistry {
         require(agentId != bytes32(0), "agent required");
         require(bytes(agentMetadataURI[agentId]).length == 0, "agent exists");
         agentMetadataURI[agentId] = metadataURI;
+        agentOwner[agentId] = msg.sender;
         emit AgentRegistered(agentId, metadataURI, msg.sender);
     }
 
@@ -47,6 +49,7 @@ contract MemoryAnchorRegistry {
         require(agentId != bytes32(0), "agent required");
         require(commitHash != bytes32(0), "commit required");
         require(bytes(agentMetadataURI[agentId]).length != 0, "agent missing");
+        require(msg.sender == agentOwner[agentId], "not agent owner");
         require(anchors[agentId][commitHash].commitHash == bytes32(0), "anchor exists");
 
         anchors[agentId][commitHash] = MemoryAnchor({

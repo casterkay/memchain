@@ -13,6 +13,9 @@ init -> commit intent -> bundle memory repo -> local CID -> receipt -> verify ->
 ```bash
 npm install
 npm run build
+npm link
+mkdir -p ~/.[AGENT]/skills
+ln -sfn "$PWD/skill/memchain" ~/.[AGENT]/skills/memchain
 ```
 
 If your global npm cache is not writable, use a temp cache:
@@ -20,6 +23,8 @@ If your global npm cache is not writable, use a temp cache:
 ```bash
 npm_config_cache=/private/tmp/memchain-npm-cache npm install
 ```
+
+Restart Codex after installing the skill.
 
 ## Local Demo
 

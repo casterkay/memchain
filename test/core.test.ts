@@ -8,6 +8,7 @@ import { initRepo } from "../src/core/init.js";
 import { commitMemory } from "../src/core/commit.js";
 import { verifyReceipt } from "../src/core/verify.js";
 import { checkoutReceipt } from "../src/core/checkout.js";
+import { bytes32Text, optionalCommitBytes32, registerAgentOnchain, sha256DigestBytes32 } from "../src/core/monad.js";
 
 async function tempRepo() {
   const dir = await mkdtemp(path.join(tmpdir(), "memchain-test-"));
@@ -93,5 +94,29 @@ describe("local MemChain proof flow", () => {
     await writeFile(parsed.artifact_bundle_path, "tampered");
 
     await expect(verifyReceipt({ receiptPath: receipt.receipt_path })).rejects.toThrow(/artifact hash mismatch/);
+  });
+
+  it("requires Monad env before registering an agent onchain", async () => {
+    const previousRpc = process.env.MEMCHAIN_RPC_URL;
+    const previousKey = process.env.MEMCHAIN_PRIVATE_KEY;
+    const previousRegistry = process.env.MEMCHAIN_REGISTRY_ADDRESS;
+    delete process.env.MEMCHAIN_RPC_URL;
+    delete process.env.MEMCHAIN_PRIVATE_KEY;
+    delete process.env.MEMCHAIN_REGISTRY_ADDRESS;
+
+    await expect(registerAgentOnchain("openclaw-demo", "ipfs://agent")).rejects.toThrow(/MEMCHAIN_RPC_URL/);
+
+    process.env.MEMCHAIN_RPC_URL = previousRpc;
+    process.env.MEMCHAIN_PRIVATE_KEY = previousKey;
+    process.env.MEMCHAIN_REGISTRY_ADDRESS = previousRegistry;
+  });
+
+  it("converts receipt hashes to onchain bytes32 values without rehashing sha256 digests", () => {
+    expect(optionalCommitBytes32(null)).toBe("0x0000000000000000000000000000000000000000000000000000000000000000");
+    expect(optionalCommitBytes32("abc123")).toBe(bytes32Text("abc123"));
+    expect(sha256DigestBytes32("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")).toBe(
+      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    );
+    expect(() => sha256DigestBytes32("sha256:not-hex")).toThrow(/invalid sha256 digest/);
   });
 });
