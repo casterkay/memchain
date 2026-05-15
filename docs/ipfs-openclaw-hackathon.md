@@ -101,3 +101,13 @@ Our core public good is Alkahest, a general-purpose conditional escrow system bu
 # [Aomi](aomi.dev)
 
 Aomi Labs builds native harness around blockchains functioning like Claude Code on-chain. We specialize in executions against arbitrary protocol with non-custodial workflow, account abstraction, and full security with simulations. Aomi also host agentic applications deployed and owned by developers, companies, and agents. Aomi provides E2E integration with UI, Skills and SDKs.
+
+## Bounties
+
+Best General Aomi App
+$300
+Build the most impressive application using Aomi Labs' on-chain agentic infrastructure. We're looking for projects that showcase Aomi's native blockchain harness, think non-custodial workflows, account abstraction, agentic execution against arbitrary protocols, or novel use of Aomi's Skills and SDKs.
+
+Best Aomi-on-Filecoin App
+$200
+Build an Aomi-powered application that meaningfully integrates with Filecoin-pin. We want to see agentic, non-custodial workflows that leverage both Aomi's on-chain execution harness and IPFS/Filecoin-pin storage, compute, or data primitives.

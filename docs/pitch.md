@@ -1,777 +1,648 @@
-# MemChain: Onchain Git Registry for Trading Agent Memories
+# MemChain: The Meme Market for OpenClaw Trading Agent Genes
 
-1. 一句话定位
+## One-Line Pitch
 
-MemChain 是 AI trading agent 的 Git + IPFS + Monad 记忆证明系统：在每次交易决策前，把 agent 的本地 memory 自动版本化、上链存证，使交易智能体的“过去所知、当时所想、如何决策”可审计、可回放、可验证、可交易。
+MemChain turns an OpenClaw trading agent's profile files into verifiable, tradable agent genes: versioned with Git, stored on IPFS/Filecoin, evaluated by trading performance, and exchanged by agents in an Aomi-powered marketplace.
 
-⸻
+## The Big Idea
 
-2. 核心叙事
+OpenClaw agents are not just models calling tools.
 
-AI agent 正在从“工具”变成“经济参与者”。
+Each serious trading agent carries a small set of files that shape how it thinks, remembers, manages risk, and acts:
 
-它们会接任务、调用工具、管理资产、执行交易、参与治理、协作交付，甚至代表用户做出金融决策。但今天大多数 agent 的记忆系统仍然是中心化、本地化、不可验证的。
+- `AGENTS.md`: operating instructions, tool rules, boundaries, and execution discipline
+- `MEMORY.md`: accumulated lessons, market observations, mistakes, and strategy updates
+- `SOUL.md`: identity, risk appetite, values, long-term behavior, and self-model
 
-这带来一个根本问题：
+Together, these files are the agent's profile. In practice, they act like the agent's genes.
 
-当一个 agent 亏钱、误操作、被攻击、篡改策略、遗忘承诺，或者伪造历史时，我们如何知道它当时到底看到了什么、记住了什么、相信了什么、基于什么做出了决策？
+They do not execute the trade directly, but they shape every trade the agent later makes. They encode what the agent has learned, what it pays attention to, what it refuses to do, how it reacts under uncertainty, and how it updates after profit or loss.
 
-Monad AI Blueprint 已经把 verifiable memory systems 列为 AI 方向之一，目标是让 AI reasoning 可审计、不可篡改。 ￼ Monad 文档对 ERC-8004 的介绍也明确提到，ERC-8004 为 agent identity、reputation、validation 提供链上注册机制，让 AI agents 拥有可携带身份、可验证历史和加密验证能力。 ￼ EIP-8004 的目标是让 agent 可以跨组织发现、选择和交互，而无需预先信任对方。 ￼
+MemChain makes those agent genes verifiable, measurable, and tradable.
 
-MemChain 补上 ERC-8004 之后最关键的一层：不是只证明“这个 agent 是谁、评分如何”，而是证明“这个 agent 在某个时间点到底记得什么”。
+## The Meme Thesis
 
-⸻
+Richard Dawkins introduced the idea of the meme as a unit of cultural transmission: an idea, behavior, or pattern that spreads because it is copied.
 
-3. Problem
+OpenClaw agent profiles are memes for autonomous agents.
 
-当前 AI trading agent 的信任断层
+A profitable risk rule, a good market-memory format, a better reflection habit, a sharper trading discipline, or a superior prompt structure can spread from one agent to another. The difference is that, in an agent economy, these memes are not just cultural jokes or slogans. They are executable cognitive patterns that can affect capital allocation.
 
-今天的交易 agent 通常有三类状态：
+In MemChain:
 
-1. Prompt / strategy：策略、系统提示、风险偏好。
-2. Memory：过往交易、市场观察、用户偏好、反思记录、失败经验。
-3. Execution log：实际下单、调用工具、交易结果。
+- An agent's profile files are its genes.
+- A packaged gene is an agent meme.
+- Trading performance is the selection pressure.
+- Copying and merging are reproduction.
+- Audit trails are provenance.
+- Marketplace demand is fitness.
 
-Execution log 可以通过交易所 API 或链上交易回溯。
-但真正影响决策的 memory 往往不可验证。
+The best agent genes should spread, but they should spread with proof.
 
-这意味着：
+## The Problem
 
-* Agent 可以事后改写 memory。
-* 项目方无法证明 agent 是否遵守策略。
-* 用户无法知道亏损是否来自市场波动、记忆污染、模型幻觉、工具攻击，还是策略被偷偷改过。
-* 其他 agent 无法可信复用它的历史经验。
-* Reputation 只记录评分，却无法回溯评分对应的真实记忆状态。
+AI trading agents are becoming economic actors. They read markets, manage portfolios, call tools, execute transactions, and coordinate with other agents.
 
-没有可验证记忆，就没有可信的 agent reputation。
+Yet the files that shape their behavior are usually local, mutable, and unverifiable.
 
-⸻
+That creates a trust gap:
 
-4. Insight
+- A seller can claim its agent has a profitable memory profile, but cannot prove which files produced the results.
+- A buyer can copy a profile snippet, but cannot know whether it came from a real agent with real trading history.
+- An agent can rewrite its memory after a bad trade and pretend it always knew the risk.
+- A marketplace can rank agents by performance, but cannot prove the profile state behind that performance.
+- A successful agent gene can spread, but without provenance, lineage, or attribution.
 
-市场不缺 trading agent。
-市场缺的是 可信 trading agent。
+The market does not only need more trading agents.
 
-未来 agent economy 的核心资产不是单次交易信号，而是：
+It needs a way for useful agent genes to be discovered, verified, copied, merged, and paid for.
 
-一个 agent 在长期交易中形成的、可验证的认知轨迹。
+## The Insight
 
-也就是：
+For human traders, edge often lives in experience: rules, scars, habits, and judgment.
 
-* 它曾经如何理解市场？
-* 它犯过哪些错？
-* 它如何更新策略？
-* 它是否遵守风险约束？
-* 它的高收益是否来自稳定逻辑，还是偶然赌博？
-* 它在某次关键交易前的 memory 状态是否可以被复现？
+For OpenClaw agents, that edge increasingly lives in profile files.
 
-MemChain 把 agent memory 从“私有缓存”升级为：
+The value is not only a single buy/sell signal. A signal expires. A good agent gene can keep producing better behavior:
 
-可审计的行为证据、可复现的认知快照、可组合的链上数据资产。
+- better risk control
+- better reflection after losses
+- better memory retrieval
+- better position sizing discipline
+- better avoidance of obvious traps
+- better reaction to repeated market patterns
+- better handoff between research and execution
 
-⸻
+If an agent gene improves earning power, other agents will want it.
 
-5. Product
+If other agents copy it, merge it, and keep paying for it, that gene behaves like a high-fitness meme in an agent economy.
 
-MemChain 是什么？
+MemChain is the infrastructure for that economy.
 
-MemChain 是一个本地命令行工具，面向 AI trading agent 开发者和量化团队。
+## Product
 
-它会监控 agent 的 memories 文件夹，例如：
+MemChain is a verifiable gene registry and marketplace for OpenClaw trading agents.
 
-~/.openclaw/memories
+It packages an agent's profile files, records their history with Git, stores the artifact on IPFS/Filecoin, attaches trading-performance evidence, and lets other agents buy, verify, decrypt, copy, and merge the gene into their own profile.
 
-在每次 agent 做交易决策之前，MemChain 自动执行：
+The first asset type is deliberately small:
 
-git add .
-git commit -m "pre-trade memory snapshot"
-ipfs add
-monad tx commit-memory-root
+```text
+agent-gene/
+  AGENTS.md
+  MEMORY.md
+  SOUL.md
+```
 
-然后把以下信息记录到 Monad 链上：
+Trade intents, receipts, decision logs, and performance records are not sold as the gene by default. They are used as evidence to score the gene's quality.
 
-* Agent ID
-* Git commit hash
-* IPFS CID
-* Memory root hash
-* Strategy version
-* Trade intent hash
-* Timestamp / block number
-* Optional encrypted metadata
-* Optional ERC-8004 identity / reputation / validation reference
+This keeps the product focused:
 
-最终形成一条链上可验证记录：
+- The asset is the agent's thinking framework.
+- The proof is the versioned history and storage record.
+- The value signal is trading performance.
+- The market is agent-to-agent copying and merging.
 
-在某个区块高度、某次交易决策前，这个 agent 的 memory 状态对应某个 Git commit，并可通过 IPFS 取回、通过 hash 验证、通过 Git checkout 回放。
+## How It Works
 
-⸻
+### 1. Snapshot the Agent Gene
 
-6. 核心用户体验
+Before or after important trading periods, MemChain snapshots the OpenClaw profile files:
 
-开发者安装
+```bash
+memchain gene create \
+  --repo ~/.openclaw \
+  --files AGENTS.md,MEMORY.md,SOUL.md \
+  --evidence ./trade-history
+```
 
-npm install -g memchain
+MemChain creates a Git commit and records exact file hashes. A future buyer can verify that the delivered files match the advertised gene.
 
-初始化 agent memory repo
+### 2. Score the Gene
 
-memchain init ~/.openclaw/memories
+MemChain evaluates the gene using trading evidence:
 
-绑定 Monad 钱包与 Agent ID
+- realized return
+- drawdown
+- volatility
+- win/loss distribution
+- consistency across decisions
+- risk-rule adherence
+- post-loss reflection quality
+- number of verified pre-trade memory proofs
 
-memchain agent register --name "ClawAlpha-01"
+The score should be transparent. A model can explain the score, but the base metrics must be deterministic.
 
-在交易前自动快照
+Example:
 
-memchain pretrade --agent clawalpha-01 --intent trade-intent.json
+```text
+Gene score: 82/100
+Return quality: strong
+Drawdown control: moderate
+Evidence depth: high
+Reflection discipline: strong
+Copy risk: medium
+```
 
-回溯某次交易前的 memory
+### 3. Store It on IPFS/Filecoin
 
-memchain checkout 0xabc123...
+The gene package is encrypted and pinned through Filecoin Pin.
 
-验证某个 agent 当时是否真的拥有某段 memory
+Public data:
 
-memchain verify --commit 0xabc123 --cid bafy...
+- asset manifest
+- file hashes
+- score report
+- provenance
+- preview summary
+- seller agent identity
 
-出售某段 memory block
+Private data:
 
-memchain list --commit 0xabc123 --price 5 MON
+- encrypted `AGENTS.md`
+- encrypted `MEMORY.md`
+- encrypted `SOUL.md`
+- decryption material released after settlement
 
-⸻
+Public IPFS gives content addressing. Filecoin gives persistent decentralized storage. Encryption protects the agent's hard-won edge.
 
-7. 为什么现在做？
+### 4. Register the Agent
 
-三个趋势正在同时发生。
+The seller agent is registered as a first-class agent identity through ERC-8004-compatible metadata.
 
-第一，AI agents 正在金融化。
-它们不再只是聊天机器人，而是会管理资金、执行交易、调用 DeFi 合约、参与治理和协作完成任务。
+The agent card points to:
 
-第二，agent identity / reputation 正在标准化。
-ERC-8004 已经把 agent identity、reputation、validation 作为核心注册层，用于支持 agent 的可发现、可评估和可验证交互。 ￼
+- profile metadata
+- MemChain verification endpoint
+- Filecoin/IPFS asset manifest
+- supported purchase and delivery flow
+- reputation and performance evidence
 
-第三，Monad 明确把 verifiable memory systems 作为 AI 基础设施方向之一。 ￼ 这说明市场正在从“让 agent 能行动”，进入“让 agent 的行动可信”的阶段。
+Identity answers: who produced this gene?
 
-MemChain 正好站在三者交叉点：AI trading agent × verifiable memory × on-chain agent reputation。
+MemChain answers: what exactly is being sold, where is it stored, and what evidence supports its value?
 
-⸻
+### 5. Sell Through an Agentic Marketplace
 
-8. 产品架构
+The marketplace is not just a human checkout page.
 
-Layer 1：Local Memory Versioning
+It is an agentic market where seller and buyer agents can negotiate, inspect, purchase, and verify profile genes.
 
-MemChain 不改变 agent 原有架构，而是接管 memories 文件夹的版本控制。
+The Aomi app gives agents tools such as:
 
-支持：
+- inspect an OpenClaw profile
+- create a gene asset
+- score a gene
+- publish a listing
+- compare candidate genes
+- buy a gene
+- verify delivery
+- merge selected sections into a local profile
 
-* Git commit
-* Branch / tag
-* Diff
-* Checkout
-* Rollback
-* Memory redaction
-* Memory schema validation
+Arkhai provides the trustless commerce layer: escrow, fulfillment conditions, and natural-language purchase agreements.
 
-价值：
+Example agreement:
 
-开发者不用重写 agent，只要把现有 memory 文件夹交给 MemChain 管。
+```text
+Buyer pays 50 USDFC if seller delivers the decryption key for the exact gene asset with manifest CID bafy... and file hashes matching the MemChain listing.
+```
 
-⸻
+The buyer agent does not need to trust the seller. It verifies the CID, hashes, score report, and decrypted files.
 
-Layer 2：Content Addressed Storage
+### 6. Copy or Merge the Gene
 
-每次 memory snapshot 会上传到 IPFS。
+After purchase, the buyer agent can:
 
-链上只存：
+- copy the full gene into a new OpenClaw profile
+- merge selected sections into its own `MEMORY.md`
+- import risk rules into `AGENTS.md`
+- adopt persona and objective constraints from `SOUL.md`
+- keep the purchase receipt as provenance
 
-* CID
-* Commit hash
-* Merkle root
-* Metadata hash
+This is how agent memes reproduce.
 
-不直接存完整 memory，降低成本。
+High-performing genes get copied more often. Poor genes disappear. Hybrid genes emerge from merges. Over time, the market creates a living evolutionary graph of agent cognition.
 
-可选模式：
+## Why This Matters
 
-* Public memory：适合开源 agent、研究 agent、公开策略。
-* Encrypted memory：memory 加密后上传 IPFS，只有购买者或授权验证者可解密。
-* Redacted memory：隐藏 API keys、私钥、个人信息、交易账户信息。
-* ZK proof mode：只证明某段 memory 存在于 snapshot 中，不公开原文。
+Trading-agent markets usually focus on signals.
 
-⸻
+Signals are short-lived. Genes compound.
 
-Layer 3：Monad On-chain Registry
+A signal says:
 
-MemChain 在 Monad 上部署 Memory Registry 合约：
+```text
+Buy ETH now.
+```
 
-struct MemorySnapshot {
-    address agent;
-    bytes32 commitHash;
-    string ipfsCid;
-    bytes32 memoryRoot;
-    bytes32 intentHash;
-    uint256 blockNumber;
-    uint256 timestamp;
-    bytes32 strategyVersion;
+An agent gene says:
+
+```text
+Here is the risk discipline, market memory, reflection habit, and execution policy that helped this agent survive and earn across many decisions.
+```
+
+That is a deeper asset.
+
+It can be reused. It can be improved. It can be measured. It can evolve.
+
+MemChain turns agent knowledge from private text files into a market for verifiable cognitive patterns.
+
+## Core User Experience
+
+### Seller Agent
+
+```bash
+memchain gene create --repo ~/.openclaw --evidence ./trades
+memchain gene score --asset ./gene.json
+memchain gene upload --asset ./gene.json --filecoin
+memchain market list --asset bafy... --price 50USDFC
+```
+
+The seller publishes a verifiable encrypted gene with performance evidence.
+
+### Buyer Agent
+
+```bash
+memchain market inspect --listing gene-001
+memchain market buy --listing gene-001
+memchain gene verify --receipt ./purchase.json
+memchain gene merge --receipt ./purchase.json --repo ~/.openclaw
+```
+
+The buyer verifies the gene, decrypts it after settlement, and copies or merges it into its own OpenClaw profile.
+
+## Architecture
+
+### Layer 1: Git Gene Versioning
+
+Git records the exact evolution of `AGENTS.md`, `MEMORY.md`, and `SOUL.md`.
+
+It gives agents and auditors:
+
+- commits
+- diffs
+- branches
+- tags
+- rollback
+- lineage
+- merge history
+
+This matters because agent genes should not be static blobs. Their evolution is part of their value.
+
+### Layer 2: MemChain Receipts
+
+Every gene asset receives a receipt:
+
+```json
+{
+  "schema": "memchain.gene.receipt.v1",
+  "agent_id": "claw-alpha",
+  "gene_id": "gene-eth-risk-v3",
+  "commit_hash": "2e7b8f...",
+  "manifest_cid": "bafy...",
+  "encrypted_payload_cid": "bafy...",
+  "score_cid": "bafy...",
+  "file_hashes": {
+    "AGENTS.md": "sha256:...",
+    "MEMORY.md": "sha256:...",
+    "SOUL.md": "sha256:..."
+  },
+  "storage": {
+    "provider": "filecoin-pin",
+    "network": "filecoin-mainnet"
+  }
 }
+```
 
-核心函数：
+The receipt is the proof object agents pass around.
 
-commitSnapshot()
-verifySnapshot()
-linkTrade()
-mintMemoryAsset()
-slashInvalidSnapshot()
+### Layer 3: IPFS and Filecoin Storage
 
-价值：
+IPFS makes each gene content-addressed. Filecoin Pin keeps it persistently stored.
 
-Monad 提供高性能链上记录，适合 agent 高频决策前的低成本存证。
+The marketplace never needs to trust a centralized database to answer what was sold. The CID and hashes define the asset.
 
-⸻
+### Layer 4: Agent Identity
 
-Layer 4：ERC-8004 Compatibility
+ERC-8004-compatible registration links the gene to the agent that produced it.
 
-MemChain 不与 ERC-8004 竞争，而是成为 ERC-8004 agent 的 memory proof extension。
+This makes reputation portable:
 
-ERC-8004 解决：
+- seller identity
+- profile metadata
+- validation method
+- storage location
+- performance evidence
+- marketplace history
 
-* 这个 agent 是谁？
-* 它的 reputation 是什么？
-* 谁验证过它？
-* 它是否支持某些验证方式？
+### Layer 5: Agentic Commerce
 
-MemChain 解决：
+Aomi gives agents the interactive tool surface.
 
-* 这次评分对应哪个 memory 版本？
-* 这次交易前它到底知道什么？
-* 它是否改写过 memory？
-* 它的历史收益是否可回放？
-* 它的策略演化是否可审计？
+Arkhai gives the settlement and agreement layer.
 
-ERC-8004 是 agent 的身份与声誉层。MemChain 是 agent 的记忆证据层。
+Together they let agents do more than browse listings. They can evaluate, negotiate, buy, verify, and merge genes as part of their own autonomous improvement loop.
 
-⸻
+## Why OpenClaw Is the Right Starting Point
 
-9. Killer Use Cases
+OpenClaw already treats agent behavior as editable local profile files.
 
-Use Case 1：交易事故审计
+That makes it ideal for MemChain:
 
-用户问：
+- The asset boundary is clear.
+- The files are human-readable.
+- The files are agent-readable.
+- Git diffs are meaningful.
+- Copying and merging are natural.
+- Trading performance gives objective feedback.
 
-为什么我的 agent 昨天 3:42 做了一笔亏损交易？
+OpenClaw agents can become self-improving economic actors: they trade, learn, publish genes, buy better genes, and merge what works.
 
-MemChain 可以回答：
+## Killer Use Cases
 
-* 当时 memory 是哪个 commit。
-* 当时策略版本是什么。
-* 当时 agent 是否记录了风险限制。
-* 当时是否已有相反信号。
-* 交易前 memory 是否被修改。
-* 下单后是否发生记忆篡改。
+### 1. Buy Better Risk Discipline
 
-这让 agent trading 从黑盒变成可审计系统。
+An agent keeps making overleveraged trades.
 
-⸻
+It buys a proven risk-control gene from another agent with lower drawdown and merges the risk rules into `AGENTS.md` and `SOUL.md`.
 
-Use Case 2：Agent Reputation 证据化
+The buyer is not buying a trade signal. It is buying a behavior pattern.
 
-今天的 reputation 可能只是一个分数。
-MemChain 让 reputation 变成可验证证据链。
+### 2. Proven Strategy Evolution
 
-例如：
+A seller lists a gene that went through five versions during a volatile market period.
 
-Agent A 最近 30 天收益率 18%，最大回撤 4%。
+Buyers can inspect:
 
-MemChain 可以附带证明：
+- what changed
+- when it changed
+- which changes preceded better outcomes
+- whether the agent reflected after losses
 
-* 每次交易前的 memory snapshot。
-* 每次 strategy update 的 diff。
-* 每次失败后的 reflection。
-* 每个评分对应的交付版本。
-* 每个收益结果对应的 memory state。
+The gene's history becomes part of the product.
 
-不是“相信评分”，而是“验证评分”。
+### 3. Agent-to-Agent Knowledge Transfer
 
-⸻
+A research agent develops a strong market-memory format.
 
-Use Case 3：Memory Block Marketplace
+A trading agent buys that memory structure, merges it into its own `MEMORY.md`, and starts storing observations in a better way.
 
-优秀 trading agent 的历史记忆本身就是资产。
+The meme spreads because it improves downstream decisions.
 
-例如：
+### 4. Reputation With Evidence
 
-* “2026 年 5 月某次市场崩盘前的风险识别 memory”
-* “某个 agent 连续盈利 30 天的策略演化记录”
-* “某个 agent 对特定 meme coin 流动性陷阱的经验 memory”
-* “某个 agent 失败后总结出的风控规则”
+Marketplaces can rank agents not only by PnL, but by gene quality:
 
-这些 memory snapshot 可以被打包成链上资产出售给其他 agent。
+- consistency
+- risk discipline
+- evidence depth
+- successful copies
+- buyer outcomes after merging
+- lineage from other high-performing genes
 
-买家不是买一个 signal，而是买：
+Reputation becomes evidence-backed instead of score-only.
 
-某个 agent 在某个时间点形成的可验证认知状态。
+### 5. Evolutionary Agent Experiments
 
-⸻
+Builders can branch an agent gene into several variants, run them in paper trading, and publish the winners.
 
-Use Case 4：Agent-to-Agent Trust
+MemChain tracks the lineage:
 
-未来一个 trading agent 可能会雇佣另一个 research agent。
+```text
+gene-v1
+  -> risk-heavy-v2
+  -> momentum-v2
+  -> drawdown-aware-v3
+```
 
-问题是：
+The best variants survive because they earn, not because someone claims they are better.
 
-我凭什么相信你的研究结果？
+## Market Position
 
-MemChain 可以让 research agent 提供：
+MemChain is not another trading bot.
 
-* 研究过程 memory hash
-* 数据来源版本
-* 推理过程摘要
-* 交付 commit
-* 上链 validation record
+It does not claim to predict markets.
 
-Trading agent 可以自动判断是否接受这个研究结果。
+It provides the infrastructure for trading agents to prove, sell, copy, and evolve the profile genes that shape their behavior.
 
-这与 ERC-8004 的跨组织 agent discovery / interaction 方向高度一致。 ￼
+Comparison:
 
-⸻
+| System | What It Proves |
+| --- | --- |
+| Exchange logs | What trade happened |
+| Wallet history | What transaction settled |
+| Reputation score | How an agent is rated |
+| IPFS storage | What content exists |
+| Git | How files changed |
+| MemChain | Which agent gene existed, how it evolved, how it performed, and who copied it |
 
-10. 产品形态
+## Why Now
 
-MVP：CLI 工具
+Three shifts are converging.
 
-目标用户：AI trading agent 开发者、黑客松团队、DeFi quant builder。
+First, agents are becoming economic actors. They are no longer just chat interfaces. They manage tasks, assets, trades, and agreements.
 
-功能：
+Second, agent frameworks such as OpenClaw make behavior portable through profile files.
 
-* memchain init
-* memchain pretrade
-* memchain commit
-* memchain verify
-* memchain checkout
-* memchain diff
-* memchain link-trade
-* memchain publish
+Third, decentralized storage, agent identity, and trustless settlement are ready enough to support markets for agent-produced assets.
 
-⸻
+This creates a new primitive:
 
-V1：Agent Memory Dashboard
+```text
+verifiable agent genes
+```
 
-为每个 agent 生成一个可公开访问的 profile：
+Once agent genes can be verified and traded, the agent economy gets an evolutionary layer.
 
-* Agent identity
-* Memory timeline
-* Commit graph
-* Trading decisions
-* Strategy diffs
-* Reputation links
-* Verification status
-* Marketplace listings
+## Business Model
 
-⸻
+### Marketplace Fee
 
-V2：Memory Marketplace
+MemChain can take a fee on successful gene sales.
 
-支持：
+The fee is tied to real exchange of useful agent knowledge, not speculative token issuance.
 
-* Memory block NFT / SBT / license
-* Encrypted memory sale
-* Pay-per-access
-* Subscription
-* Agent-to-agent purchase
-* Revenue sharing
-* Validation bounty
+### Verification API
 
-⸻
+External marketplaces, agent launchpads, funds, and developer platforms can call:
 
-V3：Trust API
+```text
+verifyGene(geneId)
+getGeneScore(geneId)
+getGeneLineage(geneId)
+getAgentGeneHistory(agentId)
+```
 
-为交易平台、agent 框架、DeFi 协议提供 API：
+### Pro Tooling
 
-memchain.verifyAgentMemory(agentId, tradeId)
-memchain.getPreTradeSnapshot(agentId, txHash)
-memchain.scoreMemoryIntegrity(agentId)
-memchain.getReputationEvidence(agentId)
+Teams running many agents need:
 
-让任何协议都能读取 agent 的 memory integrity score。
+- private gene registries
+- permissioned sharing
+- redaction workflows
+- lineage graphs
+- performance attribution
+- merge review tools
+- audit exports
 
-⸻
+### Data Licensing
 
-11. 差异化
+High-quality agent gene histories become datasets for:
 
-不是另一个 trading bot
+- agent training
+- trading behavior research
+- risk modeling
+- prompt/profile optimization
+- agent evaluation benchmarks
 
-MemChain 不预测市场。
-MemChain 证明 trading bot 的历史状态。
+## Demo Story
 
-不是普通日志系统
+Title:
 
-日志记录发生了什么。
-MemChain 证明在决策之前，agent 记得什么、相信什么、承诺什么。
+```text
+From Trading Agent Memory to Agent Gene Marketplace
+```
 
-不是单纯 IPFS 存储
+Flow:
 
-IPFS 存内容。
-Git 存演化。
-Monad 存不可篡改证明。
-ERC-8004 连接身份与声誉。
+1. Show an OpenClaw trading agent with `AGENTS.md`, `MEMORY.md`, and `SOUL.md`.
+2. The agent has a visible paper-trading history.
+3. MemChain snapshots the profile files into a gene asset.
+4. The gene is scored from trading evidence.
+5. The encrypted gene is pinned to IPFS/Filecoin.
+6. The seller agent registers its profile and publishes the listing.
+7. A buyer agent inspects the score and provenance through the Aomi app.
+8. The buyer opens an Arkhai escrow for the exact CID and hashes.
+9. The seller fulfills by delivering the decryption key.
+10. The buyer verifies, decrypts, and merges selected gene sections.
+11. The market now records a copy event: the meme reproduced.
 
-不是 reputation 系统的替代品
+Closing line:
 
-MemChain 是 reputation 的证据底座。
+```text
+Trading agents should not only trade assets. They should trade the genes that make them better traders.
+```
 
-⸻
+## Pitch Deck Structure
 
-12. 护城河
-
-1. Memory Graph Network Effects
-
-越多 agent 使用 MemChain，越多 memory snapshot 可以互相引用、购买、验证、评分。
-
-最终形成：
-
-Agent Memory Graph
-
-其中每个节点是一个 agent memory state，每条边代表：
-
-* 交易引用
-* 研究引用
-* 策略继承
-* 购买关系
-* 验证关系
-* reputation update
-
-⸻
-
-2. Developer-first Distribution
-
-CLI 是最快切入点。
-
-不要求开发者迁移框架，不要求改 agent 架构，不要求使用新 memory DB。
-只要已有 memories 文件夹，就可以接入。
-
-⸻
-
-3. ERC-8004 Extension Positioning
-
-MemChain 可以成为 ERC-8004 agent 生态的默认 memory proof layer。
-
-当 agent identity、reputation、validation 逐渐标准化后，下一步必然需要：
-
-reputation evidence。
-
-MemChain 就是这个 evidence layer。
-
-⸻
-
-4. High-value Vertical First
-
-先做 trading agent，而不是泛 AI memory。
-
-原因：
-
-* 交易结果客观。
-* 损失可量化。
-* 审计需求强。
-* 用户愿意付费。
-* Memory 的价值可以被收益、回撤、风险控制验证。
-* Agent 间购买 memory 的动机更强。
-
-⸻
-
-13. 商业模式
-
-1. SaaS / Pro CLI
-
-面向开发者和小团队：
-
-* 免费：本地 Git + 手动上链。
-* Pro：自动 IPFS pinning、dashboard、alerts、diff viewer。
-* Team：多 agent 管理、权限控制、审计导出。
-
-⸻
-
-2. On-chain Protocol Fee
-
-每次 memory asset 交易抽成：
-
-* 2.5% marketplace fee
-* 0.5% validation fee
-* 可引入 validator / curator 激励
-
-⸻
-
-3. Verification API
-
-面向：
-
-* DeFi 协议
-* agent launchpad
-* trading agent marketplace
-* DAO treasury managers
-* hedge fund / quant teams
-
-按调用量收费。
-
-⸻
-
-4. Memory Data Licensing
-
-高质量 agent memory 可以形成数据资产：
-
-* 训练数据
-* 策略回测数据
-* agent behavior dataset
-* risk model dataset
-
-⸻
-
-14. Go-to-Market
-
-Phase 1：Monad AI / Agent Hackathon 切入
-
-定位：
-
-The verifiable memory layer for Monad AI agents.
-
-目标：
-
-* 做一个可 demo 的 CLI。
-* 接入一个开源 trading agent。
-* 每次交易前自动 commit memory。
-* 在 Monad testnet 上存证。
-* Dashboard 展示 memory timeline。
-* 支持 checkout 回放某次交易前的 agent memory。
-
-⸻
-
-Phase 2：集成 Agent Framework
-
-优先集成：
-
-* OpenClaw
-* ElizaOS 类 agent 框架
-* LangChain / LangGraph memory folder
-* AutoGen / CrewAI 本地状态
-* 自研 DeFi trading bot
-
-策略：
-
-不要求框架适配 MemChain，而是 MemChain 适配它们的 memory path。
-
-⸻
-
-Phase 3：推出 Public Agent Memory Leaderboard
-
-排行榜不只看 PnL，还看：
-
-* Memory integrity score
-* Strategy consistency
-* Audit completeness
-* Drawdown explanation quality
-* Reflection quality
-* Reproducibility score
-
-让“可信 agent”成为新的竞争维度。
-
-⸻
-
-15. Demo 脚本
-
-Demo 标题
-
-From Black-box Trading Agent to Verifiable Economic Actor
-
-Demo 流程
-
-1. 启动一个 AI trading agent。
-2. Agent 读取 memory，准备做交易。
-3. MemChain 自动捕获 pre-trade memory snapshot。
-4. Snapshot 被 Git commit。
-5. Commit 上传 IPFS。
-6. CID + commit hash 写入 Monad。
-7. Agent 执行交易。
-8. 交易亏损或盈利。
-9. 用户点击 dashboard 回溯该交易。
-10. 页面展示：
-
-* 决策前 memory
-* 决策后 memory diff
-* strategy version
-* trade intent
-* Monad proof
-* IPFS proof
-* Git checkout command
-
-11. 另一个 agent 购买该 memory block，用于学习或验证。
-
-Demo 金句
-
-“We don’t just show what the agent did. We prove what the agent remembered before it acted.”
-
-⸻
-
-16. Pitch Deck 结构
-
-Slide 1：Title
+### Slide 1: Title
 
 MemChain
-Verifiable Memory Infrastructure for AI Trading Agents
 
-副标题：
+The Meme Market for OpenClaw Trading Agent Genes
 
-Git-versioned, IPFS-stored, Monad-verified memory for accountable agent economies.
+Subtitle:
 
-⸻
+Verifiable, tradable, performance-scored profile files for self-improving trading agents.
 
-Slide 2：The Shift
+### Slide 2: Agents Have Genes
 
-AI agents are becoming economic actors.
+OpenClaw agents think through profile files:
 
-They trade, spend, earn, promise, deliver, and collaborate.
-But their memory is still centralized, mutable, and unverifiable.
+- `AGENTS.md`
+- `MEMORY.md`
+- `SOUL.md`
 
-⸻
+These files shape behavior, risk, memory, and strategy.
 
-Slide 3：The Problem
+### Slide 3: The Trust Gap
 
-When an AI trading agent loses money, nobody can answer:
+Agent profile files are valuable, but today they are local, mutable, and unverifiable.
 
-* What did it know before the trade?
-* Did it change its memory afterward?
-* Which strategy version was active?
-* Which result produced its reputation score?
-* Can another agent verify its track record?
+No provenance. No performance evidence. No safe way to buy, copy, or merge them.
 
-⸻
+### Slide 4: The Meme Insight
 
-Slide 4：The Missing Layer
+Dawkins described memes as ideas that spread by being copied.
 
-ERC-8004 gives agents identity, reputation, and validation.
-Monad AI Blueprint calls for verifiable memory systems.
+Agent genes are executable memes. If they improve trading performance, other agents should copy them.
 
-But reputation needs evidence.
+### Slide 5: The Product
 
-MemChain is the evidence layer for agent memory.
+MemChain packages OpenClaw profile files into verifiable gene assets, stores them on IPFS/Filecoin, scores them from trading evidence, and sells them through an agentic marketplace.
 
-⸻
+### Slide 6: How It Works
 
-Slide 5：The Product
+Profile files -> Git commit -> encrypted gene asset -> Filecoin Pin -> score report -> agentic marketplace -> buyer merge
 
-MemChain is a local CLI that versions an agent’s memory folder with Git, stores snapshots on IPFS, and commits proofs to Monad before every trading decision.
+### Slide 7: Why It Is Valuable
 
-⸻
+Signals expire. Genes compound.
 
-Slide 6：How It Works
+Buyers get reusable trading behavior: risk rules, memory structures, reflection habits, and decision discipline.
 
-Agent memory folder
-        ↓
-Git commit
-        ↓
-IPFS CID
-        ↓
-Monad memory registry
-        ↓
-Auditable pre-trade memory proof
+### Slide 8: Why It Is Verifiable
 
-⸻
+Each gene has:
 
-Slide 7：Why Trading First
+- file hashes
+- Git history
+- storage CID
+- score evidence
+- seller identity
+- purchase receipt
+- merge provenance
 
-Trading agents have:
+### Slide 9: Agentic Marketplace
 
-* High financial stakes
-* Objective outcomes
-* Strong audit needs
-* Clear reputation signals
-* Valuable historical memory
+Aomi agents inspect, score, buy, verify, and merge genes.
 
-⸻
+Arkhai escrow ensures the buyer receives the exact encrypted asset key promised by the listing.
 
-Slide 8：Use Cases
+### Slide 10: Evolutionary Network
 
-* Post-loss audit
-* Reputation evidence
-* Strategy rollback
-* Agent-to-agent trust
-* Memory block marketplace
-* Compliance-grade decision history
+Successful genes get copied more.
 
-⸻
+Copied genes produce descendants.
 
-Slide 9：Memory Becomes an Asset
+Descendants compete on trading performance.
 
-A profitable agent’s historical memory is not just a log.
+MemChain becomes the lineage graph for agent cognition.
 
-It is:
+### Slide 11: Business Model
 
-* Strategy evolution
-* Market interpretation
-* Risk learning
-* Failure reflection
-* Verifiable alpha history
+- marketplace fees
+- verification API
+- pro tooling
+- private gene registries
+- data licensing
 
-MemChain turns memory blocks into tradable on-chain assets.
-
-⸻
-
-Slide 10：Market Position
-
-ERC-8004: Who is this agent?
-Reputation: How has it performed?
-Validation: Who verified it?
-MemChain: What did it remember when it acted?
-
-⸻
-
-Slide 11：Business Model
-
-* Pro CLI / hosted dashboard
-* IPFS pinning and storage
-* Verification API
-* Marketplace transaction fee
-* Enterprise audit tools
-* Memory data licensing
-
-⸻
-
-Slide 12：Vision
+### Slide 12: Vision
 
 The future agent economy needs more than autonomous agents.
 
-It needs accountable agents.
+It needs agents that can inherit, verify, and trade the cognitive patterns that make them better.
 
-MemChain makes AI memory verifiable, portable, auditable, and monetizable.
+MemChain makes agent evolution auditable.
 
-⸻
+## 30-Second Pitch
 
-17. 推荐 Pitch 版本
+MemChain is a meme market for OpenClaw trading agents.
 
-30 秒版本
+OpenClaw agents are shaped by profile files like `AGENTS.md`, `MEMORY.md`, and `SOUL.md`. These files are the agent's genes: they encode its risk rules, memory, strategy discipline, and trading personality.
 
-MemChain is a verifiable memory layer for AI trading agents.
+MemChain packages those files into verifiable encrypted assets, stores them on IPFS/Filecoin, scores them using trading performance, and lets other agents buy, verify, copy, and merge them.
 
-Today, agents can trade, manage funds, and interact on-chain, but their memory is still mutable and centralized. If an agent loses money or changes strategy, users cannot verify what it knew before acting.
+The best agent genes spread because they earn. That is Dawkins' meme idea applied to autonomous trading agents: useful cognitive patterns reproduce.
 
-MemChain solves this by turning the agent’s local memory folder into a Git-versioned, IPFS-stored, Monad-verified audit trail. Before every trading decision, MemChain commits the memory state, uploads it to IPFS, and records the proof on-chain.
+## 2-Minute Pitch
 
-This lets users audit losses, verify reputation, replay historical decision states, and even sell valuable memory blocks to other trading agents.
+OpenClaw trading agents are not only models. They are shaped by profile files: `AGENTS.md`, `MEMORY.md`, and `SOUL.md`.
 
-ERC-8004 gives agents identity and reputation. MemChain gives that reputation evidence.
+Those files encode how an agent thinks, what it remembers, how it manages risk, how it reflects after losses, and how it decides what not to do. In practice, they are the agent's genes.
 
-⸻
+Today those genes are local text files. They can be copied, but not safely. A seller cannot prove which gene produced which performance. A buyer cannot verify provenance. A marketplace cannot tell whether a profitable profile was real, edited after the fact, or copied without attribution.
 
-2 分钟版本
+MemChain fixes that. It snapshots an OpenClaw agent's profile files with Git, stores the encrypted asset on IPFS/Filecoin, attaches deterministic performance evidence from trading history, and creates a verifiable listing that other agents can inspect and buy.
 
-AI agents are becoming economic actors. They trade, spend, earn, collaborate, and make commitments on behalf of users. But there is a trust gap: their memory is still controlled by centralized systems or local files.
+This turns agent profiles into memes in the original Dawkins sense: patterns that spread by being copied. A good risk rule, memory structure, reflection habit, or trading discipline can move from one agent to another. Successful genes get copied more because they produce better outcomes.
 
-For trading agents, this is dangerous. If an agent loses money, makes a bad trade, or gets attacked, users need to know what happened. Not just what transaction was executed, but what the agent remembered before it acted, what strategy version it used, and whether its memory was modified afterward.
+The marketplace is agentic. Through the Aomi app, buyer and seller agents can inspect assets, evaluate scores, negotiate purchase terms, verify delivery, and merge selected profile sections. Arkhai escrow makes settlement trustless: the buyer pays only if the delivered key unlocks the exact asset promised by CID and hash.
 
-MemChain is a verifiable memory system for AI trading agents. It is a local CLI tool that watches an agent’s memory folder, versions it with Git, stores snapshots on IPFS, and records the commit hash and CID on Monad before every trading decision.
+MemChain is not selling trade signals. It is selling verifiable cognitive DNA for trading agents.
 
-With MemChain, anyone can go back to a specific trade, checkout the exact memory state before the decision, inspect the strategy context, verify the hash against Monad, and prove whether the agent’s history is authentic.
+Signals expire. Genes compound.
 
-This is especially powerful in the context of ERC-8004. ERC-8004 gives agents portable identity, reputation, and validation. But reputation is only useful if the underlying evidence is verifiable. MemChain provides that evidence layer.
+## One-Sentence Close
 
-Over time, agent memory becomes more than an audit trail. It becomes an asset. A profitable agent’s historical memories — its market observations, strategy evolution, and failure reflections — can be packaged and sold to other agents as verified memory blocks.
-
-MemChain starts with trading agents because the pain is sharp, the outcomes are measurable, and the willingness to pay is high. But the long-term vision is broader: every serious AI agent that handles money, governance, contracts, or mission-critical workflows will need verifiable memory.
-
-MemChain makes AI agents accountable economic actors.
+MemChain lets OpenClaw agents inherit what works: the best trading-agent genes become verifiable memes that spread through performance, purchase, copy, and merge.
